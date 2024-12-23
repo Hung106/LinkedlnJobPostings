@@ -1,21 +1,34 @@
-import React, { useState, useEffect} from "react";
-import { AppBar, Toolbar, IconButton, Typography, Button, Avatar, Drawer, List, ListItem, ListItemText, } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Button,
+  Avatar,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
+import listIcon from "../assets/list.png"; // Đường dẫn tới ảnh icon menu ẩn
 
-const Navbar = ({ title, menuItems, routes, active, setActive }) => {
+const Navbar = ({ title, menuItems, routes, active, setActive, showMenuIcon, onMenuClick }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const [userName, setUserName] = useState('');
   const [userAvatar, setUserAvatar] = useState('');
+
   useEffect(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
       const parsedData = JSON.parse(userData);
-      setUserName(parsedData.last_name);  
-      setUserAvatar(parsedData.avatar || 'https://i.pravatar.cc/150?img=3'); 
+      setUserName(parsedData.last_name);
+      setUserAvatar(parsedData.avatar || 'https://i.pravatar.cc/150?img=3');
     }
   }, []);
+
   // Toggle the drawer (mobile menu)
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -79,6 +92,13 @@ const Navbar = ({ title, menuItems, routes, active, setActive }) => {
               {item}
             </Button>
           ))}
+
+          {/* Hiển thị icon list.png nếu `showMenuIcon` là true */}
+          {showMenuIcon && (
+            <IconButton onClick={onMenuClick} sx={{ color: "white" }}>
+              <img src={listIcon} alt="Menu" style={{ width: "30px", height: "30px" }} />
+            </IconButton>
+          )}
 
           <Typography
             variant="body1"
@@ -152,6 +172,5 @@ const Navbar = ({ title, menuItems, routes, active, setActive }) => {
     </>
   );
 };
-
 
 export default Navbar;

@@ -2,89 +2,67 @@ import React from 'react';
 import { Button, Typography, Box, Container, AppBar, Toolbar, IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+
 const Home = () => {
+  const menuItems = ['Dashboard','Data visualization', 'Job', 'Company', 'Posting'];
+  const routes = ['/','/datavisualization', '/job', '/company', '/posting']; 
+
   return (
     <>
-      {/* Đặt lại margin và padding của html, body */}
-      <style>
-        {`
-          html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-          }
-        `}
-      </style>
-      {/* Thanh điều hướng */}
-      <AppBar position="fixed" sx={{ backgroundColor: '#000', boxShadow: 'none' }}>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 0 }}>
-            <MenuIcon />
-          </IconButton>
-          {/* Logo */}
-          <img
-            src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
-            alt="HCMUT Logo"
-            style={{ width: '100px', marginRight: '10px' }}
-          />
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Shoppee Mini
-          </Typography>
-          {/* Các nút điều hướng */}
-          <Button color="inherit" sx={{ marginLeft: '20px' }}>Trang chủ</Button>
-          <Button color="inherit">Giới thiệu</Button>
-          <Button color="inherit">Liên hệ</Button>
-        </Toolbar>
-      </AppBar>
-      {/* Nội dung trang */}
-      <Box
-        sx={{
-          backgroundImage: 'url(https://image.dienthoaivui.com.vn/x,webp,q90/https://dashboard.dienthoaivui.com.vn/uploads/dashboard/editor_upload/YWRpgR0MjCrlOsI3ewiuTPIRCa359covhvLNZWXm.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          marginTop: '64px', // Bỏ khoảng cách của AppBar
-        }}
-      >
-        <Container
+      <div>
+        <Navbar
+          title="LinkedlnJobPosting"
+          menuItems={menuItems}
+          routes={routes}
+          active="Dashboard"
+        />
+        {/* Đặt lại margin và padding của html, body */}
+        <style>
+          {`
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              overflow-x: hidden;
+            }
+          `}
+        </style>
+        <Box
           sx={{
-            textAlign: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Nền mờ
-            borderRadius: '8px',
-            padding: '30px',
-            width: '100%',
-            maxWidth: '500px', // Giới hạn chiều rộng của container
+            backgroundImage: 'url(https://kinsta.com/wp-content/uploads/2018/09/linkedin-statistics-1200x675.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            height: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: 'white',
+            marginTop: '64px', // Tránh che bởi AppBar
           }}
         >
-          <Typography variant="h4" sx={{ marginBottom: '10px' }}>
-            Chào mừng đến với hệ thống thương mại điện tử Shoppee Mini
-          </Typography>
-          <Typography variant="h6" sx={{ marginBottom: '40px' }}>
-            Hệ thống cung cấp dịch vụ mua hàng trực tuyến nhanh chóng, tiện lợi và tiết kiệm
-          </Typography>
-          {/* Điều hướng tới trang đăng nhập */}
-          <Link to="/login" style={{ textDecoration: 'none' }}>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{
-                fontSize: '16px',
-                padding: '10px 20px',
-                borderRadius: '25px',
-              }}
-            >
-              Đăng nhập
-            </Button>
-          </Link>
-        </Container>
-      </Box>
+          <Container
+            sx={{
+              textAlign: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Nền mờ
+              borderRadius: '8px',
+              padding: '30px',
+              width: '100%',
+              maxWidth: '500px', // Giới hạn chiều rộng của container
+            }}
+          >
+            <Typography variant="h4" sx={{ marginBottom: '10px' }}>
+              Welcome to our Linkedln Job Posting Web
+            </Typography>
+            <Typography variant="h6" sx={{ marginBottom: '40px' }}>
+            Where opportunities meet talent, empowering careers and building connections globally.
+            </Typography>
+          </Container>
+        </Box>
+      </div>
     </>
   );
 };
+
 export default Home;
