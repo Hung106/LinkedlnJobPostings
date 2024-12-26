@@ -19,6 +19,34 @@ def get_all_companies():
             )
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
+def get_all_industries():
+    try:
+        with engine.connect() as connection:
+            query = text('SELECT DISTINCT * FROM Industry_Has_Industry_Name')
+            result = connection.execute(query)
+            industries = [dict(row._mapping) for row in result]
+        return jsonify(
+                {
+                "success": True,
+                "data": industries
+                }
+            )
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+def get_all_specialities():
+    try:
+        with engine.connect() as connection:
+            query = text('SELECT DISTINCT * FROM Company_Speciality')
+            result = connection.execute(query)
+            specialities = [dict(row._mapping) for row in result]
+        return jsonify(
+                {
+                "success": True,
+                "data": specialities
+                }
+            )
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 def get_company_by_id(id):
     try:
         with engine.connect() as connection:

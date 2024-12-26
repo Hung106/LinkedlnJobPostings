@@ -2,6 +2,8 @@ from flask import Blueprint
 from controllers import company_controller
 # GET: /company
 # GET: /company/id
+# GET: /company/industries  
+# GET: /company/specialities
 # GET: /company/industries/id (GET industries từ company_id)
 # GET: /company/industry/id (GET industry theo industry_id)
 # GET: /company/speciality/id
@@ -16,6 +18,8 @@ company_routes = Blueprint('company_routes', __name__)
 
 #=================================GET=================================#
 company_routes.route('/', methods=['GET'])(company_controller.get_all_companies)
+company_routes.route('/industries', methods=['GET'])(company_controller.get_all_industries)
+company_routes.route('/specialities', methods=['GET'])(company_controller.get_all_specialities)
 company_routes.route('/<id>', methods=['GET'])(company_controller.get_company_by_id)
 company_routes.route('/industries/<id>', methods=['GET'])(company_controller.get_industries_by_company_id)
 company_routes.route('/industry/<id>', methods=['GET'])(company_controller.get_industry_by_id)
