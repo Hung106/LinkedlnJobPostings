@@ -1,0 +1,102 @@
+
+.job-page body {
+    background-color: #e8f5e9;
+    font-family: Arial, sans-serif;
+}
+
+
+.job-page .container {
+    display: flex;
+    flex-direction: column; 
+    min-height: 100vh; 
+    padding: 20px; 
+    background-color: #c3f1c3; 
+    transition: background-color 0.3s ease;
+}
+
+.job-page table {
+    border-collapse: collapse;
+    width: 100%; 
+    margin-top: 80px;
+    margin-left: 100px;
+    margin-bottom: 10px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    background-color: #dadada; 
+    transition: transform 0.3s ease; 
+}
+
+
+.job-page th, .job-page td {
+    border: 1px solid black;
+    padding: 12px; 
+    text-align: center;
+    transition: background-color 0.3s ease; }
+
+
+    .job-page th {
+    background-color: #f0a030;
+    color: #fff;
+    font-weight: bold;
+}
+
+
+.job-page.checkbox-cell {
+    text-align: center;
+}
+
+
+.job-page .benefit-table {
+    width: 50%;
+    margin: 0 auto; 
+    margin-top: 80px;
+    border-collapse: collapse;
+}
+
+
+.job-page .benefit-table th {
+    background-color: #00c0c0; 
+    color: #fff; 
+}
+
+
+.job-page .benefit-table td {
+    background-color: #d0d0d0; 
+}
+
+.job-page .pagination {
+    text-align: center;
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+}
+
+
+.job-page .pagination a {
+    margin: 0 5px;
+    text-decoration: none;
+    color: #000;
+    padding: 8px 12px; 
+    border: 1px solid #000;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+.job-page.pagination a.active {
+    background-color: #f0a030; 
+    color: #fff; 
+}
+
+
+.job-page table:hover {
+    transform: scale(1.02); 
+}
+
+
+.job-page td:hover {
+    background-color: #f7cb88; 
+}
+
+
+.job-page th:hover {
+    background-color: #d89a00; 
+}
