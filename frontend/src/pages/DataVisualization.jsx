@@ -57,7 +57,7 @@ const DataVisualization = () => {
           </Typography>
         </div>
       );
-    }
+    } 
   };
 
   return (

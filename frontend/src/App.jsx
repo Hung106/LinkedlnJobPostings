@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route ,Outlet,Navigate} from 'react-ro
 import Home from './pages/Home';
 import Company from './pages/Company';
 import DataVisualization from './pages/DataVisualization';
+import PostingTitle from './pages/Title'
+
 const App = () => {
   return (
     <Router>
@@ -10,6 +12,7 @@ const App = () => {
         {/* Public Route */}
         <Route path="/" element={<Home />} />
         <Route path="/company" element={<Company />} />
+        <Route path="/postingtitle" element={<PostingTitle />} />
         <Route path="/datavisualization" element={<DataVisualization />} />
         {/* Private Routes */}
       </Routes>
