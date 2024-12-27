@@ -16,5 +16,5 @@ To set up the app, follow these steps:
 ```
 3. Run:
 ```
-  yarn run start
+  yarn run dev
 ```
