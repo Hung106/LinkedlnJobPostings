@@ -91,7 +91,7 @@ const Chart_company_postings = () => {
         },
         title: {
           display: true,
-          text: "Số lượng bài đăng theo tháng của công ty (2023 - 06/2024)",
+          text: "Số lượng bài đăng theo tháng của công ty 06/2024",
         },
       },
       scales: {
