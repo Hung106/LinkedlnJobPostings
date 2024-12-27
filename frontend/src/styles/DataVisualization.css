@@ -1,6 +1,6 @@
 /* Style for the entire page */
 .data-visualization {
-  background-color: #e8f5e9; /* Màu nền xanh lá nhạt */
+  background-color: #ffffff;
   min-height: 100vh;
   padding: 20px;
   text-align: center;
@@ -29,6 +29,10 @@
 .chart-container {
   text-align: center;
   margin-top: 20px;
+  width: 90%; /* Chiếm 90% chiều rộng của màn hình */
+  max-width: 1200px; /* Giới hạn chiều rộng tối đa */
+  margin-left: auto;
+  margin-right: auto; /* Đảm bảo căn giữa */
 }
 
 .chart-image {

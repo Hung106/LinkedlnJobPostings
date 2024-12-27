@@ -33,3 +33,8 @@ company_routes.route('/employee_count/<id>', methods=['GET'])(company_controller
 
 #=================================DELETE=================================#
 # company_routes.route('/<id>', methods=['DELETE'])(company_controller.delete_company)
+
+
+
+#===================================CHART=================================#
+company_routes.route('/chart_company_postings/<id>', methods=['GET'])(company_controller.get_chart_company_postings)

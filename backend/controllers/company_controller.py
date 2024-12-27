@@ -8,7 +8,7 @@ from utils import generate_unique_id
 def get_all_companies():
     try:
         with engine.connect() as connection:
-            query = text('SELECT DISTINCT * FROM Company')
+            query = text('SELECT DISTINCT TOP 100 * FROM Company')
             result = connection.execute(query)
             companies = [dict(row._mapping) for row in result]
         return jsonify(
@@ -187,5 +187,31 @@ def get_employee_count_by_id(id):
 #     except Exception as e:
 #         return jsonify({"success": False, "message": str(e)})
 
-#=========================================PUT=========================================#
+#=========================================PUT============================================#
+#=========================================DELETE=========================================#
+
+#=========================================CHART=========================================#
+def get_chart_company_postings(id):
+    try:
+        with engine.connect() as connection:
+            query = text(f"""
+                SELECT
+                    ps.original_listed_time,
+                    COUNT(*) AS post_count
+                FROM Posting_State ps
+                JOIN Posting p ON ps.posting_id = p.posting_id
+                WHERE p.company_id = {id}
+                GROUP BY ps.original_listed_time
+                ORDER BY ps.original_listed_time
+            """)
+            result = connection.execute(query)
+            chart_data = [dict(row._mapping) for row in result]
+        return jsonify(
+                {
+                "success": True,
+                "data": chart_data
+                }
+            )
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 

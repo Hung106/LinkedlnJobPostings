@@ -10,6 +10,9 @@ import "../styles/DataVisualization.css";
 import worktypeChart from "../assets/worktype.png";
 import salaryChart from "../assets/salary.png";
 
+// Import biểu đồ Chart_company_postings
+import Chart_company_postings from "../charts/Chart_company_postings"; // Đảm bảo bạn đã tạo đúng đường dẫn
+
 const DataVisualization = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentChart, setCurrentChart] = useState("worktype"); 
@@ -25,12 +28,22 @@ const DataVisualization = () => {
   };
 
   const handleNextChart = () => {
-    setCurrentChart((prev) => (prev === "worktype" ? "salary" : "worktype"));
+    setCurrentChart((prev) => {
+      if (prev === "worktype") return "salary";
+      if (prev === "salary") return "postings";
+      return "worktype";
+    });
   };
+  
 
   const handlePreviousChart = () => {
-    setCurrentChart((prev) => (prev === "salary" ? "worktype" : "salary"));
+    setCurrentChart((prev) => {
+      if (prev === "salary") return "worktype";
+      if (prev === "postings") return "salary";
+      return "postings";
+    });
   };
+  
 
   const renderChart = () => {
     if (currentChart === "worktype") {
@@ -55,6 +68,12 @@ const DataVisualization = () => {
           <Typography variant="body2" className="chart-description">
             This chart shows salary distribution based on payment periods like Hourly, Weekly, and Monthly.
           </Typography>
+        </div>
+      );
+    } else if (currentChart === "postings") {
+      return (
+        <div className="chart-container">
+          <Chart_company_postings /> {}
         </div>
       );
     }
@@ -93,13 +112,21 @@ const DataVisualization = () => {
         >
           Chart 2: Salary
         </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setCurrentChart("postings");
+            handleMenuClose();
+          }}
+        >
+          Chart_company_postings
+        </MenuItem>
       </Menu>
 
       <Typography variant="h4" className="data-visualization-title">
         Data Visualization Page
       </Typography>
       <Typography variant="subtitle1" className="data-visualization-subtitle">
-        {currentChart === "worktype" ? "Chart 1/2" : "Chart 2/2"}
+        {currentChart === "worktype" ? "Chart 1/2" : currentChart === "salary" ? "Chart 2/2" : "Chart_company_postings"}
       </Typography>
       <TransitionGroup>
         <CSSTransition key={currentChart} classNames="fade" timeout={300}>
