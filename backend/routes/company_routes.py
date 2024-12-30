@@ -1,5 +1,6 @@
 from flask import Blueprint
 from controllers import company_controller
+from middlewares import company_middleware
 # GET: /company
 # GET: /company/id
 # GET: /company/industries  
@@ -28,11 +29,14 @@ company_routes.route('/location/<id>', methods=['GET'])(company_controller.get_l
 company_routes.route('/employee_count/<id>', methods=['GET'])(company_controller.get_employee_count_by_id)
 
 #=================================POST=================================#
-# company_routes.route('/', methods=['POST'])(company_controller.create_company)
+@company_routes.route('/', methods=['POST'])
+@company_middleware.validate_company_data
+def create_company_route():
+    return company_controller.create_company()
 # company_routes.route('/<id>', methods=['PUT'])(company_controller.update_company)
 
 #=================================DELETE=================================#
-# company_routes.route('/<id>', methods=['DELETE'])(company_controller.delete_company)
+company_routes.route('/<id>', methods=['DELETE'])(company_controller.delete_company)
 
 
 

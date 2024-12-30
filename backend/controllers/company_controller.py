@@ -133,62 +133,171 @@ def get_employee_count_by_id(id):
         return jsonify({"success": False, "message": str(e)})
     
 #=========================================POST=========================================#
-# def create_company(data):
-#     try:
-#         with engine.connect() as connection:
-#             query = text('INSERT INTO Company (Company_name, Company_description, Company_address, Company_phon
-# e, Company_email, Company_website) VALUES (:Company_name, :Company_description, :Company_address, :Company_phone, :Company_email, :Company_website)')
-#             result = connection.execute(query, data)
-#         return jsonify(
-#                 {
-#                 "success": True,
-#                 "message": "Company created successfully"
-#                 }
-#             )
-#     except Exception as e:
-#         return jsonify({"success": False, "message": str(e)})
-# def create_location(data):
-#     try:
-#         with engine.connect() as connection:
-#             query = text('INSERT INTO Company_Location (Company_id, Location_id) VALUES (:Company_id, :Location_id)')
-#             result = connection.execute(query, data)
-#         return jsonify(
-#                 {
-#                 "success": True,
-#                 "message": "Location created successfully"
-#                 }
-#             )
-#     except Exception as e:
-#         return jsonify({"success": False, "message": str(e)})
-# def create_employee_count(data):
-#     try:
-#         with engine.connect() as connection:
-#             query = text('INSERT INTO Employee_Count (Company_id, Employee_count) VALUES (:Company_id, :Employee_count)')
-#             result = connection.execute(query, data)
-#         return jsonify(
-#                 {
-#                 "success": True,
-#                 "message": "Employee count created successfully"
-#                 }
-#             )
-#     except Exception as e:
-#         return jsonify({"success": False, "message": str(e)})
-# def create_industry(data):
-#     try:
-#         with engine.connect() as connection:
-#             query = text('INSERT INTO Company_Has_Industry (Company_id, Industry_id) VALUES (:Company_id, :Industry_id)')
-#             result = connection.execute(query, data)
-#         return jsonify(
-#                 {
-#                 "success": True,
-#                 "message": "Industry created successfully"
-#                 }
-#             )
-#     except Exception as e:
-#         return jsonify({"success": False, "message": str(e)})
+def create_company():
+    try:
+        data = request.get_json()
+        
+        company_id = data['company_id']
+        company_size = data['company_size']
+        description = data['description']
+        company_name = data['company_name']
+        company_url = data['company_url']
+        
+        with engine.connect() as connection:
+            query = text('''
+                INSERT INTO Company (Company_id, Company_size, description, Company_name, Company_url) 
+                VALUES (:company_id, :company_size, :description, :company_name, :company_url)
+            ''')
+            result = connection.execute(query, {
+                'company_id': company_id,
+                'company_size': company_size,
+                'description': description,
+                'company_name': company_name,
+                'company_url': company_url
+            })
+            print(f"Number of affected rows: {result.rowcount}")
+        
+            if all(key in data for key in ['country', 'state', 'city', 'zip_code', 'number', 'street']):
+                location_query = text(f'''
+                    INSERT INTO company_location (company_id, country, state, city, zip_code, number, street) 
+                    VALUES ({company_id}, '{data['country']}', '{data['state']}', '{data['city']}', '{data['zip_code']}', '{data['number']}', '{data['street']}')
+                ''')
+                connection.execute(location_query)
+
+            if 'industry_id' in data:
+                industry_query = text(f'''
+                    INSERT INTO Company_Has_Industry (company_id, industry_id) 
+                    VALUES ({company_id}, {data['industry_id']})
+                ''')
+                connection.execute(industry_query)
+            elif 'industry_name' in data:
+                get_industry_query = text(f'''
+                    SELECT industry_id FROM Industry_Has_Industry_Name WHERE industry_name = '{data['industry_name']}'
+                ''')
+                result = connection.execute(get_industry_query).fetchone()
+
+                if result:
+                    industry_id = result['industry_id']
+                else:
+                    insert_industry_query = text(f'''
+                        INSERT INTO Industry_Has_Industry_Name (industry_name) 
+                        VALUES ('{data['industry_name']}')
+                    ''')
+                    connection.execute(insert_industry_query)
+                    
+                    industry_id = connection.execute(get_industry_query).fetchone()['industry_id']
+                
+                industry_insert_query = text(f'''
+                    INSERT INTO Company_Has_Industry (company_id, industry_id) 
+                    VALUES ({company_id}, {industry_id})
+                ''')
+                connection.execute(industry_insert_query)
+
+        return jsonify({
+            "success": True,
+            "message": "Company created successfully"
+        })
+    
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+def create_location(data):
+    try:
+        with engine.connect() as connection:
+            location_query = text(''' 
+                INSERT INTO company_location (company_id, country, state, city, zip_code, number, street) 
+                VALUES (:company_id, :country, :state, :city, :zip_code, :number, :street)
+            ''')
+            result = connection.execute(location_query, {
+                'company_id': data['company_id'],
+                'country': data['country'],
+                'state': data['state'],
+                'city': data['city'],
+                'zip_code': data['zip_code'],
+                'number': data['number'],
+                'street': data['street']
+            })
+            
+        return jsonify({
+            "success": True,
+            "message": "Location created successfully"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+def create_industry(data):
+    try:
+        with engine.connect() as connection:
+            if 'industry_id' in data:
+                industry_query = text(''' 
+                    INSERT INTO Company_Has_Industry (company_id, industry_id) 
+                    VALUES (:company_id, :industry_id)
+                ''')
+                result = connection.execute(industry_query, {
+                    'company_id': data['company_id'],
+                    'industry_id': data['industry_id']
+                })
+            elif 'industry_name' in data:
+                get_industry_query = text('''
+                    SELECT industry_id FROM Industry_Has_Industry_Name WHERE industry_name = :industry_name
+                ''')
+                result = connection.execute(get_industry_query, {'industry_name': data['industry_name']}).fetchone()
+
+                if result:
+                    industry_id = result['industry_id']
+                else:
+                    insert_industry_query = text('''
+                        INSERT INTO Industry_Has_Industry_Name (industry_name) 
+                        VALUES (:industry_name)
+                    ''')
+                    connection.execute(insert_industry_query, {'industry_name': data['industry_name']})
+
+                    industry_id = connection.execute(get_industry_query, {'industry_name': data['industry_name']}).fetchone()['industry_id']
+
+                industry_insert_query = text('''
+                    INSERT INTO Company_Has_Industry (company_id, industry_id) 
+                    VALUES (:company_id, :industry_id)
+                ''')
+                connection.execute(industry_insert_query, {
+                    'company_id': data['company_id'],
+                    'industry_id': industry_id
+                })
+        
+        return jsonify({
+            "success": True,
+            "message": "Industry created successfully"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 #=========================================PUT============================================#
 #=========================================DELETE=========================================#
+def delete_company(id):
+    try:
+        with engine.connect() as connection:
+            delete_industry_query = text('''
+                DELETE FROM Company_Has_Industry WHERE company_id = :company_id
+            ''')
+            connection.execute(delete_industry_query, {'company_id': id})
+
+            delete_location_query = text('''
+                DELETE FROM company_location WHERE company_id = :company_id
+            ''')
+            connection.execute(delete_location_query, {'company_id': id})
+
+            delete_company_query = text('''
+                DELETE FROM Company WHERE company_id = :company_id
+            ''')
+            connection.execute(delete_company_query, {'company_id': id})
+
+        return jsonify({
+            "success": True,
+            "message": "Company and related data deleted successfully"
+        })
+    
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 #=========================================CHART=========================================#
 def get_chart_company_postings(id):

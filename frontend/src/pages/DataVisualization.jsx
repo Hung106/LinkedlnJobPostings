@@ -11,7 +11,7 @@ import worktypeChart from "../assets/worktype.png";
 import salaryChart from "../assets/salary.png";
 
 // Import biểu đồ Chart_company_postings
-import Chart_company_postings from "../charts/Chart_company_postings"; // Đảm bảo bạn đã tạo đúng đường dẫn
+import Chart_company_postings from "../charts/Chart_company_postings";
 
 const DataVisualization = () => {
   const [anchorEl, setAnchorEl] = useState(null);
