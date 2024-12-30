@@ -22,7 +22,7 @@ def create_app():
 
     app.register_blueprint(posting_bp, url_prefix='/api/v1')
     app.register_blueprint(dashboard_bp, url_prefix='/api/v1')
-    app.register_blueprint(GN_bp, url_prefix='/api/v1')
+    app.register_blueprint(GN_bp, url_prefix='')
     
     
     app.register_blueprint(company_routes, url_prefix='/api/company')
