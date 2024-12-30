@@ -1,122 +1,95 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  IconButton,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, CircularProgress, Button } from '@mui/material';
 import Navbar from "../components/Navbar";
 
 const Company = () => {
-  const menuItems = ["Dashboard", "Data visualization", "Job", "Company", "Posting"];
-  const routes = ["/", "/datavisualization", "/job", "/company", "/posting"];
   const [companies, setCompanies] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [formData, setFormData] = useState({
-    id: "",
-    name: "",
-    industry: "",
-    location: "",
-    speciality: "",
-    employee_count: "",
-  });
-  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [employeeData, setEmployeeData] = useState({});
+  const [locationData, setLocationData] = useState({});
+  const [showDescriptions, setShowDescriptions] = useState({});
 
-  // Fetch companies on load
+  const menuItems = ["Dashboard", "Data Visualization", "Job", "Company", "Posting"];
+  const routes = ["/", "/datavisualization", "/job", "/company", "/posting"];
+  const cellStyle = {
+    borderRight: '1px solid rgba(224, 224, 224, 1)', // Thêm vạch dọc
+    textAlign: 'center',
+  };
+
   useEffect(() => {
-    fetchCompanies();
+    // Fetch data từ API
+    axios.get('http://127.0.0.1:5000/api/company/')
+      .then((response) => {
+        setCompanies(response.data.data); // Dữ liệu từ API
+        setLoading(false);
+      })
+      .catch((error) => {
+        setError('Failed to fetch company data');
+        setLoading(false);
+      });
   }, []);
 
-  const fetchCompanies = async () => {
-    try {
-      const response = await fetch("/company");
-      const data = await response.json();
-      setCompanies(data);
-    } catch (error) {
-      console.error("Error fetching companies:", error);
-    }
+  const toggleDescription = (companyId) => {
+    setShowDescriptions((prev) => ({
+      ...prev,
+      [companyId]: !prev[companyId],
+    }));
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await fetch(`/company/${id}`, { method: "DELETE" });
-      setCompanies(companies.filter((company) => company.id !== id));
-    } catch (error) {
-      console.error("Error deleting company:", error);
+  // Gọi API để lấy employee_count và follower_count khi bấm nút
+  const fetchEmployeeData = (companyId) => {
+    if (employeeData[companyId]) {
+      setEmployeeData((prev) => ({
+        ...prev,
+        [companyId]: { ...prev[companyId], visible: !prev[companyId].visible },
+      }));
+      return;
     }
-  };
 
-  const handleOpenDialog = (company) => {
-    if (company) {
-      setFormData({
-        id: company.id,
-        name: company.name,
-        industry: company.industry,
-        location: company.location,
-        speciality: company.speciality,
-        employee_count: company.employee_count,
+    axios
+      .get(`http://127.0.0.1:5000/api/company/employee_count/${companyId}`)
+      .then((response) => {
+        setEmployeeData((prev) => ({
+          ...prev,
+          [companyId]: { data: response.data.data, visible: true },
+        }));
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch employee data for company ${companyId}`, error);
+        setEmployeeData((prev) => ({
+          ...prev,
+          [companyId]: { data: [], visible: true, error: 'Error fetching data' },
+        }));
       });
-      setIsEditing(true);
-    } else {
-      setFormData({
-        id: "",
-        name: "",
-        industry: "",
-        location: "",
-        speciality: "",
-        employee_count: "",
+  };
+
+  // Gọi API lấy dữ liệu location
+  const fetchLocationData = (companyId) => {
+    if (locationData[companyId]) {
+      setLocationData((prev) => ({
+        ...prev,
+        [companyId]: { ...prev[companyId], visible: !prev[companyId].visible },
+      }));
+      return;
+    }
+
+    axios
+      .get(`http://127.0.0.1:5000/api/company/location/${companyId}`)
+      .then((response) => {
+        setLocationData((prev) => ({
+          ...prev,
+          [companyId]: { data: response.data.data, visible: true },
+        }));
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch location data for company ${companyId}`, error);
+        setLocationData((prev) => ({
+          ...prev,
+          [companyId]: { data: [], visible: true, error: 'Error fetching data' },
+        }));
       });
-      setIsEditing(false);
-    }
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async () => {
-    try {
-      if (isEditing) {
-        await fetch(`/company/${formData.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-      } else {
-        await fetch("/company", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-      }
-      fetchCompanies();
-      handleCloseDialog();
-    } catch (error) {
-      console.error("Error saving company:", error);
-    }
   };
 
   return (
@@ -127,108 +100,136 @@ const Company = () => {
         routes={routes}
         active="Company"
       />
-      <Box sx={{ padding: "20px" }}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog(null)}
-          sx={{ marginBottom: "20px" }}
-        >
-          Add Company
-        </Button>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Industry</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Speciality</TableCell>
-                <TableCell>Employee Count</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {companies.map((company) => (
-                <TableRow key={company.id}>
-                  <TableCell>{company.id}</TableCell>
-                  <TableCell>{company.name}</TableCell>
-                  <TableCell>{company.industry}</TableCell>
-                  <TableCell>{company.location}</TableCell>
-                  <TableCell>{company.speciality}</TableCell>
-                  <TableCell>{company.employee_count}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpenDialog(company)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(company.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
+      <div style={{ padding: '20px' }}>
+        <Typography variant="h4" gutterBottom>
+          Company List
+        </Typography>
+        {loading && <CircularProgress />}
+        {error && <Typography color="error">{error}</Typography>}
+        {!loading && companies.length > 0 ? (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={cellStyle}><strong>ID</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Name</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Size</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>URL</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Description</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Employee Data</strong></TableCell>
+                  <TableCell><strong>Location</strong></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogTitle>
-            {isEditing ? "Edit Company" : "Add Company"}
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleFormChange}
-              sx={{ marginBottom: "10px" }}
-            />
-            <TextField
-              fullWidth
-              label="Industry"
-              name="industry"
-              value={formData.industry}
-              onChange={handleFormChange}
-              sx={{ marginBottom: "10px" }}
-            />
-            <TextField
-              fullWidth
-              label="Location"
-              name="location"
-              value={formData.location}
-              onChange={handleFormChange}
-              sx={{ marginBottom: "10px" }}
-            />
-            <TextField
-              fullWidth
-              label="Speciality"
-              name="speciality"
-              value={formData.speciality}
-              onChange={handleFormChange}
-              sx={{ marginBottom: "10px" }}
-            />
-            <TextField
-              fullWidth
-              label="Employee Count"
-              name="employee_count"
-              value={formData.employee_count}
-              onChange={handleFormChange}
-              sx={{ marginBottom: "10px" }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit}>
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
+              </TableHead>
+              <TableBody>
+                {companies.map((company) => (
+                  <TableRow key={company.company_id}>
+                    <TableCell style={cellStyle}>{company.company_id}</TableCell>
+                    <TableCell style={cellStyle}>{company.name}</TableCell>
+                    <TableCell style={cellStyle}>{company.company_size}</TableCell>
+                    <TableCell style={cellStyle}>
+                      <a href={company.url} target="_blank" rel="noopener noreferrer">
+                        {company.url}
+                      </a>
+                    </TableCell>
+                    <TableCell style={cellStyle}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => toggleDescription(company.company_id)}
+                      >
+                        {showDescriptions[company.company_id] ? "Hide Description" : "Show Description"}
+                      </Button>
+                      {showDescriptions[company.company_id] && (
+                        <Typography style={{ marginTop: '10px', whiteSpace: 'pre-line' }}>
+                          {company.description}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell style={cellStyle}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => fetchEmployeeData(company.company_id)}
+                      >
+                        {employeeData[company.company_id]?.visible ? "Hide Employee Data" : "Show Employee Data"}
+                      </Button>
+                      {employeeData[company.company_id]?.visible && (
+                        <div style={{ marginTop: '10px' }}>
+                          {employeeData[company.company_id]?.error ? (
+                            <Typography color="error">{employeeData[company.company_id].error}</Typography>
+                          ) : (
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell><strong>Employee Count</strong></TableCell>
+                                  <TableCell><strong>Follower Count</strong></TableCell>
+                                  <TableCell><strong>Time Recorded</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {employeeData[company.company_id]?.data.map((record, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{record.employee_count}</TableCell>
+                                    <TableCell>{record.follower_count}</TableCell>
+                                    <TableCell>{record.time_recorded}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => fetchLocationData(company.company_id)}
+                      >
+                        {locationData[company.company_id]?.visible ? "Hide Location Data" : "Show Location Data"}
+                      </Button>
+                      {locationData[company.company_id]?.visible && (
+                        <div style={{ marginTop: '10px' }}>
+                          {locationData[company.company_id]?.error ? (
+                            <Typography color="error">{locationData[company.company_id].error}</Typography>
+                          ) : (
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell><strong>City</strong></TableCell>
+                                  <TableCell><strong>Country</strong></TableCell>
+                                  <TableCell><strong>Number</strong></TableCell>
+                                  <TableCell><strong>State</strong></TableCell>
+                                  <TableCell><strong>Street</strong></TableCell>
+                                  <TableCell><strong>Zipcode</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {locationData[company.company_id]?.data.map((record, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{record.city}</TableCell>
+                                    <TableCell>{record.country}</TableCell>
+                                    <TableCell>{record.number}</TableCell>
+                                    <TableCell>{record.state}</TableCell>
+                                    <TableCell>{record.street}</TableCell>
+                                    <TableCell>{record.zipcode}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          !loading && <Typography>No company data available.</Typography>
+        )}
+      </div>
     </>
   );
 };

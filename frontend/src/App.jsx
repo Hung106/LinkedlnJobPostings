@@ -5,7 +5,6 @@ import Company from './pages/Company';
 import Job from './pages/Job';
 import Posting from './pages/Posting';
 import DataVisualization from './pages/DataVisualization';
-//import Posting from './pages/Posting';
 const App = () => {
   return (
     <Router>
