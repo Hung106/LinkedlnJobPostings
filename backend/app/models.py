@@ -1,6 +1,70 @@
 from flask_sqlalchemy import SQLAlchemy
+import base64
 
 db = SQLAlchemy()
+
+class Salary(db.Model):
+    __tablename__ = 'salary'
+    salary_id = db.Column(db.BigInteger, primary_key=True)
+    job_id = db.Column(db.BigInteger, nullable=True)
+    currency = db.Column(db.String(10), nullable=True)
+    compensation_type = db.Column(db.String(50), nullable=True)
+    pay_period = db.Column(db.String(50), nullable=True)
+    
+    def to_dict(self):
+        return {
+            'salary_id': self.salary_id,
+            'job_id': self.job_id,
+            'currency': self.currency,
+            'compensation_type': self.compensation_type,
+            'pay_period': self.pay_period
+        }
+class Salary_Type(db.Model):
+    __tablename__ = 'salary_type'
+    salary_id = db.Column(db.BigInteger, primary_key=True)
+    salary_type = db.Column(db.String(10), nullable=False)
+    value = db.Column(db.Float, nullable=True)
+    
+    def to_dict(self):
+        return {
+            'salary_id': self.salary_id,
+            'salary_type': self.salary_type,
+            'value': self.value,
+        }
+    
+class Company(db.Model):
+    __tablename__ = 'company'
+    company_id = db.Column(db.BigInteger, primary_key=True)
+    company_name = db.Column(db.String(255), nullable=True)
+    company_size = db.Column(db.Integer, nullable=True)
+    company_url = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    
+    postings = db.relationship('Posting', backref='company', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'company_id': self.company_id,
+            'company_name': self.company_name,
+            'company_size': self.company_size,
+            'company_url': self.company_url,
+            'description': self.description
+        }
+
+class Job(db.Model):
+    __tablename__ = 'job'
+    job_id = db.Column(db.BigInteger, primary_key=True)
+    job_description = db.Column(db.Text, nullable=True)
+    skills = db.Column(db.String(max), nullable=True)
+
+    postings = db.relationship('Posting', backref='job', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'job_id': self.job_id,
+            'job_description': self.job_description,
+            'skills': self.skills
+        }
 
 class Posting(db.Model):
     __tablename__ = 'posting'
@@ -38,32 +102,60 @@ class Posting(db.Model):
 
 class PostingState(db.Model):
     __tablename__ = 'posting_state'
-    id = db.Column(db.Integer, primary_key=True)
+    posting_state_id = db.Column(db.Integer, primary_key=True)
     posting_id = db.Column(db.Integer, db.ForeignKey('posting.posting_id'), nullable=False)
+    timezone_offset = db.Column(db.Integer, nullable=True)
     expiry = db.Column(db.DateTime, nullable=False)
+    original_listed_time = db.Column(db.DateTime, nullable=False)
+    listed_time = db.Column(db.DateTime, nullable=False)
+    applies = db.Column(db.Integer, nullable=True)
     remaining_time = db.Column(db.Integer, nullable=True)
     apply_rate = db.Column(db.Float, nullable=True)
     views = db.Column(db.Integer, nullable=True)
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "posting_id": self.posting_id,
-            "expiry": self.expiry,
-            "remaining_time": self.remaining_time,
-            "apply_rate": self.apply_rate,
-            "views": self.views
+        data = {
+            'posting_state_id': self.posting_state_id,
+            'posting_id': self.posting_id,
+            'timezone_offset': self.timezone_offset,
+            'expiry': self.expiry,
+            'original_listed_time': self.original_listed_time,
+            'listed_time': self.listed_time,
+            'applies': self.applies,
+            'remaining_time': self.remaining_time,
+            'apply_rate': self.apply_rate,
+            'views': self.views,
         }
+
+        for field in self.__dict__:
+            value = getattr(self, field)
+            if isinstance(value, bytes):
+                data[field] = base64.b64encode(value).decode('utf-8')
+
+        return data
 
 class AdditionalInfo(db.Model):
     __tablename__ = 'additional_info'
-    id = db.Column(db.Integer, primary_key=True)
+    additional_info_id = db.Column(db.Integer, primary_key=True)
     posting_id = db.Column(db.Integer, db.ForeignKey('posting.posting_id'), nullable=False)
-    info = db.Column(db.Text, nullable=True)
+    formatted_experience_level = db.Column(db.Text, nullable=True)
+    posting_domain = db.Column(db.Text, nullable=True)
+    application_url = db.Column(db.Text, nullable=True)
+    close_time = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
-        return {
-            "id": self.id,
+        data = {
+            "additional_info_id": self.additional_info_id,
             "posting_id": self.posting_id,
-            "info": self.info
+            "formatted_experience_level": self.formatted_experience_level,
+            "posting_domain": self.posting_domain,
+            "application_url": self.application_url,
+            "close_time": self.close_time
         }
+
+        for field in self.__dict__:
+            value = getattr(self, field)
+            if isinstance(value, bytes):
+                data[field] = base64.b64encode(value).decode('utf-8')
+
+        return data
