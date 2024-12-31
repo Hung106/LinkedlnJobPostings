@@ -4,10 +4,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
     
     # Cấu hình kết nối SQL Server
-    DB_SERVER = 'localhost'
-    DB_DATABASE = 'linkedln_job_posting'
-    DB_USERNAME = 'posting'
-    DB_PASSWORD = 'posting'
+    DB_SERVER = 'MSI'
+    DB_DATABASE = 'test_2_ktdl'
+    DB_USERNAME = 'sa'
+    DB_PASSWORD = 'khaikhai'
     DB_DRIVER = 'ODBC Driver 17 for SQL Server'
     
     # Connection string

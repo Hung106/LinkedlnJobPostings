@@ -106,6 +106,31 @@ const DataVisualization = () => {
     fetchCompanies();
   }, []);
 
+  const renderCompanyTable = () => {
+    if (!companyData || companyData.length === 0) {
+      return <Typography>No companies available</Typography>;
+    }
+  
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th>Company ID</th>
+            <th>Company Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {companyData.map((company) => (
+            <tr key={company.company_id}>
+              <td>{company.company_id}</td>
+              <td>{company.company_name}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
   useEffect(() => {
     if (selectedCompanyId) {
       async function fetchCompanyChartData() {
@@ -255,11 +280,11 @@ const DataVisualization = () => {
           )}
         </div>
       );
-    } else if (currentChart === "companyPostings") {
+    } else if (currentChart === "companyPostings" && renderCompanyTable()) {
       return (
         <div className="chart-container">
           <Typography variant="h5" className="data-visualization-title">
-            Số lượng bài đăng theo tháng của công ty
+            Số lượng bài đăng theo ngày của công ty
           </Typography>
           {companyChartData ? (
             <Line
@@ -268,7 +293,7 @@ const DataVisualization = () => {
                 responsive: true,
                 plugins: {
                   legend: { position: "top" },
-                  title: { display: true, text: "Số lượng bài đăng theo tháng" },
+                  title: { display: true, text: "Số lượng bài đăng theo ngày" },
                 },
                 scales: {
                   x: { title: { display: true, text: "Ngày" } },
