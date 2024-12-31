@@ -19,11 +19,20 @@ from app.middlewares import company_middleware
 # POST: /company/location/id (POST location theo company_id)
 # POST: /company/industry/id (POST industry theo company_id)
 # POST: /company/speciality (POST speciality)
+# POST: /company/employee_count/id (POST employee_count theo company_id)
+
 # PUT: /company/id (PUT company theo id)
 # PUT: /company/location/id (PUT location theo company_id)
 # PUT: /company/industry/id (PUT industry theo company_id)
 # PUT: /company/speciality/id (PUT speciality theo company_id)
+# PUT: /company/employee_count/id (PUT employee_count theo company_id)
+
 # DELETE: /company/id (DELETE company theo id)
+# DELETE: /company/location/id (DELETE location theo company_id)
+# DELETE: /company/industry/id (DELETE industry theo company_id)
+# DELETE: /company/speciality/id (DELETE speciality theo company_id)
+# DELETE: /company/employee_count/id (DELETE employee_count theo company_id)
+
 # GET: /company/chart_company_postings/id (GET chart company_postings theo company_id)
 
 company_routes = Blueprint('company_routes', __name__)
@@ -53,6 +62,9 @@ def create_industry_route(id):
 # @company_routes.route('/speciality', methods=['POST'])(company_controller.create_speciality)
 # def create_speciality_route():
 #     return company_controller.create_speciality()
+@company_routes.route('/employee_count/<id>', methods=['POST'])
+def create_employee_count_route(id):
+    return company_controller.create_employee_count(id)
 #=================================PUT=================================#
 @company_routes.route('/<id>', methods=['PUT'])
 def update_company_route(id):
@@ -66,10 +78,15 @@ def update_industry_route(id):
 # @company_routes.route('/speciality/<id>', methods=['PUT'])
 # def update_speciality_route(id):
 #     return company_controller.update_speciality(id)
+@company_routes.route('/employee_count/<id>', methods=['PUT'])
+def update_employee_count_route(id):
+    return company_controller.update_employee_count(id)
 #=================================DELETE=================================#
 company_routes.route('/<id>', methods=['DELETE'])(company_controller.delete_company)
-
-
+company_routes.route('/location/<id>', methods=['DELETE'])(company_controller.delete_location)
+company_routes.route('/industry/<id>', methods=['DELETE'])(company_controller.delete_industry)
+# company_routes.route('/speciality/<id>', methods=['DELETE'])(company_controller.delete_speciality)
+company_routes.route('/employee_count/<id>', methods=['DELETE'])(company_controller.delete_employee_count)
 
 #===================================CHART=================================#
 company_routes.route('/chart_company_postings/<id>', methods=['GET'])(company_controller.get_chart_company_postings)    

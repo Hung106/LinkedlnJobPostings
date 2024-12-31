@@ -2,7 +2,9 @@ from flask import request, jsonify
 from sqlalchemy import text
 from app.db import engine  # Import từ file db.py
 from app.utils import generate_unique_id
+import time
 
+current_timestamp = int(time.time())
 #=========================================GET=========================================#
 def get_all_companies():
     try:
@@ -191,7 +193,13 @@ def create_company():
                     VALUES ({company_id}, {industry_id})
                 ''')
                 connection.execute(industry_insert_query)
-
+            
+            if 'employee_count' in data:
+                employee_count_query = text(f'''
+                    INSERT INTO Employee_Count (Company_id, Employee_count, Follower_count, Time_recoded)
+                    VALUES ({company_id}, {data['employee_count']}, {data['Follower_count']}, {current_timestamp})
+                ''')
+                connection.execute(employee_count_query)
         return jsonify({
             "success": True,
             "message": "Company created successfully"
@@ -265,7 +273,21 @@ def create_industry():
     
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
-
+def create_employee_count():
+    try:
+        data = request.get_json()
+        with engine.connect() as connection:
+            employee_count_query = text(f'''
+                    INSERT INTO Employee_Count (Company_id, Employee_count, Follower_count, Time_recoded)
+                    VALUES ({data['company_id']}, {data['employee_count']}, {data['Follower_count']}, {current_timestamp})
+                ''')
+            connection.execute(employee_count_query)
+        return jsonify({
+            "success": True,
+            "message": "Employee count created successfully"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 #=========================================PUT============================================#
 def update_company(id):
     try:
@@ -454,7 +476,23 @@ def update_industry(id):
 
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
-
+def update_employee_count(id):
+    try:
+        data = request.get_json()
+        update_query = text(f'''
+            UPDATE Employee_Count
+            SET Employee_count = {data['employee_count']}
+            WHERE Company_id = {id}
+        ''')
+        with engine.connect() as connection:
+            connection.execute(update_query)
+            
+        return jsonify({
+            "success": True,
+            "message": "Employee count updated successfully"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 #=========================================DELETE=========================================#
 def delete_company(id):
     try:
@@ -484,8 +522,8 @@ def delete_company(id):
 def delete_location(id):
     try:
         with engine.connect() as connection:
-            query = text('DELETE FROM company_location WHERE company_id = :company_id')
-            connection.execute(query, {'company_id': id})
+            query = text(f'DELETE FROM company_location WHERE company_id = {id}')
+            connection.execute(query,)
         
         return jsonify({
             "success": True,
@@ -496,8 +534,8 @@ def delete_location(id):
 def delete_industry(id):
     try:
         with engine.connect() as connection:
-            query = text('DELETE FROM Company_Has_Industry WHERE company_id = :company_id')
-            connection.execute(query, {'company_id': id})
+            query = text(f'DELETE FROM Company_Has_Industry WHERE company_id = {id}')
+            connection.execute(query)
 
         return jsonify({
             "success": True,
@@ -517,6 +555,18 @@ def delete_industry(id):
 #         })
 #     except Exception as e:
 #         return jsonify({"success": False, "message": str(e)})
+def delete_employee_count(id):
+    try:
+        with engine.connect() as connection:
+            query = text(f'DELETE FROM Employee_Count WHERE company_id = {id}')
+            connection.execute(query)
+
+        return jsonify({
+            "success": True,
+            "message": "Employee count deleted successfully"
+        })  
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})   
 
 #=========================================CHART=========================================#
 def get_chart_company_postings(id):
