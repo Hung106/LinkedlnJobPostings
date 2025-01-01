@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.models import db, Posting, PostingState, AdditionalInfo
-import traceback
-
+from flask_cors import CORS
 posting_bp = Blueprint('posting', __name__)
 
 # GET: /posting - Lấy danh sách bài đăng

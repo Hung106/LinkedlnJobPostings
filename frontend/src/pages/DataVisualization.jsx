@@ -5,6 +5,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import "../styles/DataVisualization.css";
+import { Select } from "@mui/material";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,14 +25,20 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineEleme
 
 const DataVisualization = () => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [currentChart, setCurrentChart] = useState("worktype"); // Default to the first chart
+  const [currentChart, setCurrentChart] = useState("worktype"); 
   const [keywordsData, setKeywordsData] = useState([]);
   const [jobTitleData, setJobTitleData] = useState(null);
-  const [location, setLocation] = useState("United States");
+  const [locations, setLocations] = useState(["United States","New York, NY","Chicago, IL","Houston, TX","Dallas, TX","Cushing, OK","Atlanta, GA","Austin, TX","Boston, MA"]);
   const [companyData, setCompanyData] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState(null);
   const [companyChartData, setCompanyChartData] = useState(null);
-
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  useEffect(() => {
+    // Set default selected location after locations are initialized
+    if (locations.length > 0 && !selectedLocation) {
+      setSelectedLocation(locations[0]);
+    }
+  }, [locations]);
   useEffect(() => {
     fetch("http://127.0.0.1:5000/posting_title")
       .then((response) => response.json())
@@ -47,7 +54,7 @@ const DataVisualization = () => {
     async function fetchJobTitleData() {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/api/v1/job_title_frequency_by_location?location=${location}`
+          `http://127.0.0.1:5000/api/v1/job_title_frequency_by_location?location=${selectedLocation}`
         );
         const data = await response.json();
 
@@ -86,7 +93,7 @@ const DataVisualization = () => {
     }
 
     fetchJobTitleData();
-  }, [location]);
+  }, [selectedLocation]);
 
   useEffect(() => {
     async function fetchCompanies() {
@@ -258,8 +265,22 @@ const DataVisualization = () => {
       return (
         <div className="chart-container">
           <Typography variant="h5" className="data-visualization-title">
-            Job Title Frequency in {location}
+            Job Title Frequency in {selectedLocation}
           </Typography>
+          <div style={{ marginBottom: "20px", textAlign: "center" }}>
+            <Typography variant="h6">Select Location</Typography>
+            <Select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              style={{ minWidth: "200px" }}
+            >
+              {locations.map((loc) => (
+                <MenuItem key={loc} value={loc}>
+                  {loc}
+                </MenuItem>
+              ))}
+            </Select>
+          </div>
           {jobTitleData ? (
             <Bar
               data={jobTitleData}
@@ -267,7 +288,7 @@ const DataVisualization = () => {
                 responsive: true,
                 plugins: {
                   legend: { position: "top" },
-                  title: { display: true, text: `Job Title Frequency in ${location}` },
+                  title: { display: true, text: `Job Title Frequency in ${selectedLocation}` },
                 },
                 scales: {
                   x: { title: { display: true, text: "Job Titles" } },
@@ -280,33 +301,170 @@ const DataVisualization = () => {
           )}
         </div>
       );
-    } else if (currentChart === "companyPostings" && renderCompanyTable()) {
+    } 
+    else if (currentChart === "companyPostings") {
       return (
-        <div className="chart-container">
-          <Typography variant="h5" className="data-visualization-title">
-            Số lượng bài đăng theo ngày của công ty
-          </Typography>
-          {companyChartData ? (
-            <Line
-              data={companyChartData}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: { position: "top" },
-                  title: { display: true, text: "Số lượng bài đăng theo ngày" },
-                },
-                scales: {
-                  x: { title: { display: true, text: "Ngày" } },
-                  y: { title: { display: true, text: "Số lượng bài đăng" }, beginAtZero: true },
-                },
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            justifyContent: "space-between",
+            padding: "20px",
+          }}
+        >
+          {/* Bảng công ty */}
+          <div
+            style={{
+              flex: "0.4",
+              maxWidth: "40%",
+              overflowY: "auto",
+              maxHeight: "500px",
+              backgroundColor: "#fff",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              padding: "10px",
+            }}
+          >
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
               }}
-            />
-          ) : (
-            <Typography>Loading chart data...</Typography>
-          )}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      backgroundColor: "#007BFF",
+                      color: "white",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                      padding: "12px 15px",
+                      border: "1px solid #ddd",
+                    }}
+                  >
+                    Tên công ty
+                  </th>
+                  <th
+                    style={{
+                      backgroundColor: "#007BFF",
+                      color: "white",
+                      fontWeight: "bold",
+                      textTransform: "uppercase",
+                      padding: "12px 15px",
+                      border: "1px solid #ddd",
+                    }}
+                  >
+                    Hành động
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {companyData.map((company) => (
+                  <tr
+                    key={company.company_id}
+                    style={{
+                      textAlign: "center",
+                      border: "1px solid #ddd",
+                      cursor: "pointer",
+                      transition: "background-color 0.3s ease",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f4f4f4")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <td style={{ padding: "12px 15px" }}>{company.name}</td>
+                    <td style={{ padding: "12px 15px" }}>
+                      <button
+                        style={{
+                          padding: "8px 15px",
+                          backgroundColor: "#007BFF",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                          transition: "background-color 0.3s ease",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#0056b3")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#007BFF")
+                        }
+                        onClick={() => setSelectedCompanyId(company.company_id)}
+                      >
+                        Hiển thị biểu đồ
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+    
+          {/* Biểu đồ */}
+          <div
+            style={{
+              flex: "0.6",
+              backgroundColor: "#fff",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              padding: "20px",
+              maxWidth: "60%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {selectedCompanyId && companyChartData ? (
+              <>
+                <Typography
+                  variant="h6"
+                  style={{
+                    marginBottom: "20px",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    color: "#333",
+                  }}
+                >
+                  Công ty:{" "}
+                  {
+                    companyData.find((c) => c.company_id === selectedCompanyId)
+                      ?.name
+                  }
+                </Typography>
+                <Line
+                  data={companyChartData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                      title: { display: true, text: "Số lượng bài đăng theo ngày" },
+                    },
+                    scales: {
+                      x: { title: { display: true, text: "Ngày" } },
+                      y: {
+                        title: { display: true, text: "Số lượng bài đăng" },
+                        beginAtZero: true,
+                      },
+                    },
+                  }}
+                />
+              </>
+            ) : (
+              <Typography>Vui lòng chọn công ty để hiển thị biểu đồ.</Typography>
+            )}
+          </div>
         </div>
       );
     }
+    
+    
+    
   };
 
   return (

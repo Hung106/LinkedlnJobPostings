@@ -1,7 +1,7 @@
 from flask import Blueprint
 from app.controllers import company_controller
 from app.middlewares import company_middleware
-
+from flask_cors import CORS
 #==================================================================================================#
 #==================================Các routes cho company==========================================#
 #==================================================================================================#
@@ -47,7 +47,6 @@ company_routes.route('/industry/<id>', methods=['GET'])(company_controller.get_i
 company_routes.route('/speciality/<id>', methods=['GET'])(company_controller.get_speciality_by_id)
 company_routes.route('/location/<id>', methods=['GET'])(company_controller.get_location_by_id)
 company_routes.route('/employee_count/<id>', methods=['GET'])(company_controller.get_employee_count_by_id)
-
 #=================================POST=================================#
 @company_routes.route('/', methods=['POST'], endpoint='create_company')
 @company_middleware.validate_company_data

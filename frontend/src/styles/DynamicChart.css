@@ -1,0 +1,69 @@
+/* DynamicChart.css */
+.dynamic-chart-container {
+    margin: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .content-container {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .table-container {
+    flex: 0.4;
+    max-width: 40%;   
+    overflow-y: auto;
+    max-height: 500px;
+  }
+  
+  .company-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+  }
+  
+  .company-table th, .company-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  
+  .company-table th {
+    background-color: #007BFF;
+    color: white;
+  }
+  
+  .company-table tr:hover {
+    background-color: #f4f4f4;
+  }
+  
+  .view-chart-btn {
+    padding: 8px 15px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .view-chart-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .chart-container {
+    flex: 0.6; 
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    max-width: 60%;
+    padding-top: 20px;
+  }
+  

@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app.models import db
 from sqlalchemy import func
-from app.models import Posting, Salary, Salary_Type
-
+from app.models import db, Posting, PostingState, AdditionalInfo
+from flask_cors import CORS
 dashboard_bp = Blueprint('dashboard', __name__)
 
 # GET: /job_title_frequency_by_location - Phân tích tần suất việc làm theo vị trí
