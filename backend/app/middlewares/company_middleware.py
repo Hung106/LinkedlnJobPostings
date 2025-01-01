@@ -46,7 +46,8 @@ def validate_company_data(func):
         
         country = data.get("country")
         if country:
-            errors.append("Country is required and must be in ISO 2-letter format.")
+            if not country or not re.match(r"^[A-Z]{2}$", country.strip()):
+                errors.append("Country is required and must be in ISO 2-letter format.")
         
         city = data.get("city")
         if city:

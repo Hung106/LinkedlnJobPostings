@@ -19,7 +19,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
-
+    
     app.register_blueprint(posting_bp, url_prefix='/api/v1')
     app.register_blueprint(dashboard_bp, url_prefix='/api/v1')
     app.register_blueprint(GN_bp, url_prefix='')

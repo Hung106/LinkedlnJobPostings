@@ -52,7 +52,6 @@ def get_company_by_id(id):
     try:
         with engine.connect() as connection:
             query = text(f'SELECT * FROM Company WHERE Company_id = {id}')
-            query = text(f'SELECT * FROM Company WHERE Company_id = {id}')
             result = connection.execute(query)
             company = [dict(row._mapping) for row in result]
         return jsonify(
@@ -68,9 +67,8 @@ def get_industries_by_company_id(id):
         with engine.connect() as connection:
             query = text(f"""
                 SELECT ci.Company_id, ci.Industry_id, i.Industry_name
-                SELECT ci.Company_id, ci.Industry_id, i.Industry_name
                 FROM Company_Has_Industry ci
-                JOIN Company_Industry i ON ci.Industry_id = i.Industry_id
+                JOIN Industry_Has_Industry_Name i ON ci.Industry_id = i.Industry_id
                 WHERE ci.Company_id = {id}
             """)
             result = connection.execute(query)
@@ -156,22 +154,12 @@ def get_employee_count_by_id(id):
         return jsonify({"success": False, "message": str(e)})
     
 #=========================================POST=========================================#
-from sqlalchemy import text
-from flask import request, jsonify
-from sqlalchemy.exc import SQLAlchemyError
-
 def create_company():
     try:
         data = request.get_json()
-
-        # Kiểm tra dữ liệu đầu vào
-        required_fields = ['company_id', 'company_size', 'description', 'name', 'url']
-        for field in required_fields:
-            if field not in data or not data[field]:
-                return jsonify({"success": False, "message": f"Missing required field: {field}"}), 400
-
-        company_id = int(data['company_id'])
-        company_size = int(data['company_size'])
+        
+        company_id = data['company_id']
+        company_size = data['company_size']
         description = data['description']
         company_name = data['company_name']
         company_url = data['company_url']
@@ -186,7 +174,14 @@ def create_company():
 
             #Check if location is in data
             if 'country' in data:
-                location_query = text('''
+                country = data['country']
+                state = data.get('state', None)
+                city = data.get('city', None)
+                zip_code = data.get('zip_code', None)
+                number = data.get('number', None)
+                street = data.get('street', None)
+
+                location_query = text(f'''
                     INSERT INTO company_location (company_id, country, state, city, zip_code, number, street) 
                     VALUES ({company_id}, '{country}', {f"'{state}'" if state else "0"}, {f"'{city}'" if city else "0"}, {f"'{zip_code}'" if zip_code else "NULL"}, {f"'{number}'" if number else "NULL"}, {f"'{street}'" if street else "NULL"})
                     COMMIT;
@@ -196,26 +191,21 @@ def create_company():
             
             #Check if industry_id or industry_name is in data
             if 'industry_id' in data:
-                industry_query = text('''
+                industry_query = text(f'''
                     INSERT INTO Company_Has_Industry (company_id, industry_id) 
                     VALUES ({company_id}, {data['industry_id']})
                     COMMIT;
                 ''')
-                connection.execute(industry_query, {
-                    "company_id": company_id,
-                    "industry_id": data['industry_id']
-                })
-                print("Inserted into Company_Has_Industry successfully")
+                connection.execute(industry_query)
             elif 'industry_name' in data:
-                industry_name = data['industry_name']
-                get_industry_query = text('''
-                    SELECT industry_id FROM Industry_Has_Industry_Name WHERE industry_name = :industry_name
+                get_industry_query = text(f'''
+                    SELECT industry_id FROM Industry_Has_Industry_Name WHERE industry_name = '{data['industry_name']}'
                 ''')
                 result = connection.execute(get_industry_query).fetchone()
                 if result:
                     industry_id = result[0]
                 else:
-                    insert_industry_query = text('''
+                    insert_industry_query = text(f'''
                         INSERT INTO Industry_Has_Industry_Name (industry_name) 
                         VALUES ('{data['industry_name']}')
                         COMMIT;
@@ -269,24 +259,12 @@ def create_company():
                     VALUES ({company_id}, {data['employee_count']}, {data['follower_count']}, {current_timestamp})
                     COMMIT;
                 ''')
-                connection.execute(employee_count_query, {
-                    "company_id": company_id,
-                    "employee_count": data.get('employee_count'),
-                    "follower_count": data.get('follower_count', 0)
-                })
-                print("Inserted into Employee_Count successfully")
-
+                connection.execute(employee_count_query)
         return jsonify({
             "success": True,
             "message": "Company created successfully"
-        }), 201
-
-    except SQLAlchemyError as e:
-        print("SQLAlchemy Error:", str(e))
-        return jsonify({"success": False, "message": str(e)}), 500
-    except KeyError as e:
-        print("Missing Key Error:", e)
-        return jsonify({"success": False, "message": f"Missing key: {e}"}), 400
+        })
+    
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 def create_location(id):
@@ -421,10 +399,10 @@ def update_company(id):
     try:
         data = request.get_json()
 
-        company_size = data.get('company_size')
-        description = data.get('description')
-        name = data.get('name')
-        url = data.get('url')
+        company_size = data.get('company_size', None)
+        description = data.get('description', None)
+        company_name = data.get('company_name', None)
+        company_url = data.get('company_url', None)
 
         set_clause = []
         if company_size is not None:
@@ -696,7 +674,7 @@ def delete_company(id):
                 DELETE FROM Company_Has_Industry WHERE company_id = {id}
                 COMMIT;
             ''')
-            connection.execute(delete_industry_query, {'company_id': id})
+            connection.execute(delete_industry_query)
 
             delete_location_query = text(f'''
                 DELETE FROM company_location WHERE company_id = {id}
@@ -719,7 +697,7 @@ def delete_company(id):
                 DELETE FROM Company WHERE company_id = {id}
                 COMMIT;
             ''')
-            connection.execute(delete_company_query, {'company_id': id})
+            connection.execute(delete_company_query)
 
         return jsonify({
             "success": True,
@@ -835,4 +813,3 @@ def get_chart_company_postings(id):
             )
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
-
