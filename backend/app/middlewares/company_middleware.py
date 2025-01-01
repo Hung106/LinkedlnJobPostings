@@ -10,8 +10,8 @@ def validate_company_data(func):
         if not company_id or (isinstance(company_id, str) and company_id.strip() == ""):
             errors.append("Company ID is required.")
         
-        company_name = data.get("company_name")
-        if not company_name or (isinstance(company_name, str) and company_name.strip() == ""):
+        name = data.get("name")
+        if not name or (isinstance(name, str) and name.strip() == ""):
             errors.append("Company name is required.")
         
         if errors:

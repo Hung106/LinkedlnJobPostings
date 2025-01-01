@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, CircularProgress, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, CircularProgress, Button, TextField } from '@mui/material';
 import Navbar from "../components/Navbar";
 
 const Company = () => {
@@ -10,15 +10,107 @@ const Company = () => {
   const [employeeData, setEmployeeData] = useState({});
   const [locationData, setLocationData] = useState({});
   const [showDescriptions, setShowDescriptions] = useState({});
-
+  const [industryData, setIndustryData] = useState({});
+  const [specialityData, setSpecialityData] = useState({});
+  const [newCompany, setNewCompany] = useState({
+    company_id: '',
+    name: '',
+    company_size: '',
+    url: '',
+    description: '',
+  });
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
   const menuItems = ["Dashboard", "Data Visualization", "Job", "Company", "Posting"];
   const routes = ["/", "/datavisualization", "/job", "/company", "/posting"];
   const cellStyle = {
     borderRight: '1px solid rgba(224, 224, 224, 1)', // Thêm vạch dọc
     textAlign: 'center',
   };
+  const fetchCompanies = () => {
+    setLoading(true); // Hiển thị trạng thái loading
+    axios
+      .get("http://127.0.0.1:5000/api/company/")
+      .then((response) => {
+        setCompanies(response.data.data); // Cập nhật danh sách công ty
+        setLoading(false); // Dừng trạng thái loading
+      })
+      .catch((error) => {
+        console.error("Failed to fetch company data", error);
+        setError("Failed to fetch company data.");
+        setLoading(false); // Dừng trạng thái loading nếu gặp lỗi
+      });
+  };
+  const handleCreate = () => {
+    if (
+      !newCompany.company_id ||
+      !newCompany.name ||
+      !newCompany.company_size ||
+      !newCompany.url ||
+      !newCompany.description
+    ) {
+      alert('Vui lòng điền đầy đủ thông tin.');
+      return;
+    }
+
+    axios
+      .post('http://127.0.0.1:5000/api/company/', newCompany, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .then(() => {
+        setNewCompany({
+          company_id: '',
+          name: '',
+          company_size: '',
+          url: '',
+          description: '',
+        });
+        setIsCreating(false);
+        alert('Tạo công ty thành công.');
+        console.log('Dữ liệu gửi lên:', newCompany);
+      })
+      .catch((error) => {
+        console.error('Failed to create company:', error.response?.data || error.message);
+        alert(`Lỗi khi tạo công ty: ${error.response?.data?.message || 'Không xác định'}`);
+      });
+  };
+
+  const handleUpdate = (companyId, updatedData) => {
+    axios
+      .put(`http://127.0.0.1:5000/api/company/${companyId}`, updatedData, {
+        headers: { "Content-Type": "application/json" },
+      })
+      .then(() => {
+        alert(`Company ID ${companyId} updated successfully.`);
+        setEditingCompany(null); // Đóng form chỉnh sửa
+        fetchCompanies(); // Fetch lại danh sách công ty
+      })
+      .catch((error) => {
+        console.error(`Failed to update company with ID ${companyId}`, error.response?.data || error.message);
+        alert(`Failed to update company ID ${companyId}: ${error.response?.data?.message || "Unknown error."}`);
+      });
+  };
+
+
+  const handleDelete = (companyId) => {
+    if (!window.confirm(`Are you sure you want to delete company ID ${companyId}?`)) {
+      return;
+    }
+
+    axios
+      .delete(`http://127.0.0.1:5000/api/company/${companyId}`)
+      .then(() => {
+        alert(`Company ID ${companyId} deleted successfully.`);
+        fetchCompanies(); // Fetch lại danh sách sau khi xóa
+      })
+      .catch((error) => {
+        console.error(`Failed to delete company with ID ${companyId}`, error);
+        alert(`Failed to delete company ID ${companyId}: ${error.response?.data?.message || "Unknown error."}`);
+      });
+  };
 
   useEffect(() => {
+
     // Fetch data từ API
     axios.get('http://127.0.0.1:5000/api/company/')
       .then((response) => {
@@ -91,7 +183,58 @@ const Company = () => {
         }));
       });
   };
+  // Gọi API lấy dữ liệu industry
+  const fetchIndustryData = (companyId) => {
+    if (industryData[companyId]) {
+      setIndustryData((prev) => ({
+        ...prev,
+        [companyId]: { ...prev[companyId], visible: !prev[companyId].visible },
+      }));
+      return;
+    }
 
+    axios
+      .get(`http://127.0.0.1:5000/api/company/industries/${companyId}`)
+      .then((response) => {
+        setIndustryData((prev) => ({
+          ...prev,
+          [companyId]: { data: response.data.data, visible: true },
+        }));
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch industry data for company ${companyId}`, error);
+        setIndustryData((prev) => ({
+          ...prev,
+          [companyId]: { data: [], visible: true, error: 'Error fetching data' },
+        }));
+      });
+  };
+  // Gọi API lấy dữ liệu speciality
+  const fetchSpecialityData = (companyId) => {
+    if (specialityData[companyId]) {
+      setSpecialityData((prev) => ({
+        ...prev,
+        [companyId]: { ...prev[companyId], visible: !prev[companyId].visible },
+      }));
+      return;
+    }
+
+    axios
+      .get(`http://127.0.0.1:5000/api/company/specialities/${companyId}`)
+      .then((response) => {
+        setSpecialityData((prev) => ({
+          ...prev,
+          [companyId]: { data: response.data.data, visible: true },
+        }));
+      })
+      .catch((error) => {
+        console.error(`Failed to fetch Specialities data for company ${companyId}`, error);
+        setSpecialityData((prev) => ({
+          ...prev,
+          [companyId]: { data: [], visible: true, error: 'Error fetching data' },
+        }));
+      });
+  };
   return (
     <>
       <Navbar
@@ -104,6 +247,125 @@ const Company = () => {
         <Typography variant="h4" gutterBottom>
           Company List
         </Typography>
+        {editingCompany && (
+          <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            <Typography variant="h6">Update Company</Typography>
+            <TextField
+              label="Name"
+              fullWidth
+              value={editingCompany.name}
+              onChange={(e) => setEditingCompany({ ...editingCompany, name: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="Company Size"
+              fullWidth
+              value={editingCompany.company_size}
+              onChange={(e) => setEditingCompany({ ...editingCompany, company_size: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="URL"
+              fullWidth
+              value={editingCompany.url}
+              onChange={(e) => setEditingCompany({ ...editingCompany, url: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
+              value={editingCompany.description}
+              onChange={(e) => setEditingCompany({ ...editingCompany, description: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleUpdate(editingCompany.company_id, editingCompany)}
+              style={{ marginRight: '10px' }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => setEditingCompany(null)} // Đóng form chỉnh sửa
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+
+        {isCreating ? (
+          <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            <Typography variant="h6">Create New Company</Typography>
+            <TextField
+              label="Company ID"
+              fullWidth
+              type="number" // Đặt loại input là số
+              value={newCompany.company_id}
+              onChange={(e) => setNewCompany({ ...newCompany, company_id: Number(e.target.value) || '' })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="Name"
+              fullWidth
+              value={newCompany.name}
+              onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="Company Size"
+              fullWidth
+              value={newCompany.company_size}
+              onChange={(e) => setNewCompany({ ...newCompany, company_size: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="URL"
+              fullWidth
+              value={newCompany.url}
+              onChange={(e) => setNewCompany({ ...newCompany, url: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
+              value={newCompany.description}
+              onChange={(e) => setNewCompany({ ...newCompany, description: e.target.value })}
+              style={{ marginBottom: '10px' }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreate}
+              style={{ marginRight: '10px' }}
+            >
+              Create
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => setIsCreating(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setIsCreating(true)}
+            style={{ marginBottom: '20px' }}
+          >
+            New
+          </Button>
+        )}
+
         {loading && <CircularProgress />}
         {error && <Typography color="error">{error}</Typography>}
         {!loading && companies.length > 0 ? (
@@ -117,7 +379,10 @@ const Company = () => {
                   <TableCell style={cellStyle}><strong>URL</strong></TableCell>
                   <TableCell style={cellStyle}><strong>Description</strong></TableCell>
                   <TableCell style={cellStyle}><strong>Employee Data</strong></TableCell>
-                  <TableCell><strong>Location</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Location</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Industry</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Speciality</strong></TableCell>
+                  <TableCell style={cellStyle}><strong>Action</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -161,17 +426,17 @@ const Company = () => {
                             <Table size="small">
                               <TableHead>
                                 <TableRow>
-                                  <TableCell><strong>Employee Count</strong></TableCell>
-                                  <TableCell><strong>Follower Count</strong></TableCell>
-                                  <TableCell><strong>Time Recorded</strong></TableCell>
+                                  <TableCell style={cellStyle}><strong>Employee Count</strong></TableCell>
+                                  <TableCell style={cellStyle}><strong>Follower Count</strong></TableCell>
+                                  <TableCell style={cellStyle}><strong>Time Recorded</strong></TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
                                 {employeeData[company.company_id]?.data.map((record, index) => (
                                   <TableRow key={index}>
-                                    <TableCell>{record.employee_count}</TableCell>
-                                    <TableCell>{record.follower_count}</TableCell>
-                                    <TableCell>{record.time_recorded}</TableCell>
+                                    <TableCell style={cellStyle}>{record.employee_count}</TableCell>
+                                    <TableCell style={cellStyle}>{record.follower_count}</TableCell>
+                                    <TableCell style={cellStyle}>{record.time_recorded}</TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -180,7 +445,7 @@ const Company = () => {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={cellStyle}>
                       <Button
                         variant="contained"
                         size="small"
@@ -220,6 +485,91 @@ const Company = () => {
                           )}
                         </div>
                       )}
+                    </TableCell>
+                    <TableCell style={cellStyle}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => fetchIndustryData(company.company_id)}
+                      >
+                        {industryData[company.company_id]?.visible ? "Hide Industry Data" : "Show Industry Data"}
+                      </Button>
+                      {industryData[company.company_id]?.visible && (
+                        <div style={{ marginTop: '10px' }}>
+                          {industryData[company.company_id]?.error ? (
+                            <Typography color="error">{industryData[company.company_id].error}</Typography>
+                          ) : (
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell><strong>Industry_id</strong></TableCell>
+                                  <TableCell><strong>Name</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {industryData[company.company_id]?.data.map((record, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{record.Industry_id}</TableCell>
+                                    <TableCell>{record.Industry_name}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell style={cellStyle}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => fetchSpecialityData(company.company_id)}
+                      >
+                        {specialityData[company.company_id]?.visible ? "Hide speciality Data" : "Show speciality Data"}
+                      </Button>
+                      {specialityData[company.company_id]?.visible && (
+                        <div style={{ marginTop: '10px' }}>
+                          {specialityData[company.company_id]?.error ? (
+                            <Typography color="error">{specialityData[company.company_id].error}</Typography>
+                          ) : (
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell><strong>speciality_id</strong></TableCell>
+                                  <TableCell><strong>Name</strong></TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {specialityData[company.company_id]?.data.map((record, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{record.Speciality_id}</TableCell>
+                                    <TableCell>{record.speciality}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setEditingCompany(company)} // Hiển thị form chỉnh sửa với dữ liệu của công ty
+                        style={{ marginRight: '10px' }}
+                      >
+                        Update
+                      </Button>
+
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        style={{ marginRight: '10px' }}
+                        onClick={() => handleDelete(company.company_id)}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
