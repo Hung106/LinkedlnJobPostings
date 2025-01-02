@@ -231,7 +231,7 @@ const DataVisualization = () => {
       return (
         <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "8px" }}>
           <Typography variant="h5" className="data-visualization-title" style={{ textAlign: "center", color: "green" }}>
-            TOP 15 từ khóa xuất hiện nhiều nhất trong Posting title
+          Top 15 Keywords In Posting Titles
           </Typography>
           <div style={{ padding: "10px", maxWidth: "600px", margin: "0 auto" }}>
             {keywordsData.map(([keyword, count], index) => (

@@ -1,4 +1,4 @@
-/* General container styling */
+
 body {
   background-color: #e8f5e9;
   margin: 0; 
@@ -9,45 +9,43 @@ body {
   padding: 20px;
   border-radius: 8px; 
   margin: 0;
-  background-color: transparent ; 
+  background-color: transparent; 
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
 }
 
-/* Navbar styles */
-/* Header styles */
 
 
 .posting-header {
-  position: relative; /* Để có thể định vị các chú chim */
+  position: relative; 
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  margin-top: 40px; /* Giảm khoảng cách trên */
-  cursor: pointer; /* Thay đổi con trỏ khi hover */
+  margin-top: 40px; 
+  cursor: pointer;
 }
 
 .posting-header h4 {
-  transition: color 0.3s, transform 0.3s; /* Hiệu ứng chuyển màu và chuyển động */
+  transition: color 0.3s, transform 0.3s; 
 }
 
 .posting-header:hover h4 {
-  color: #ff4081; /* Thay đổi màu chữ khi hover */
-  transform: scale(1.1); /* Tăng kích thước chữ khi hover */
+  color: #ff4081; 
+  transform: scale(1.1); 
 }
 
 /* Chim bay ra */
 .bird {
   position: absolute;
-  width: 30px; /* Kích thước chim */
-  opacity: 0; /* Ẩn chim ban đầu */
-  transition: opacity 0.5s, transform 0.5s; /* Hiệu ứng mượt mà */
+  width: 30px;
+  opacity: 0; 
+  transition: opacity 0.5s, transform 0.5s; 
 }
 
 .posting-header:hover .bird {
-  opacity: 1; /* Hiện chim khi hover */
-  transform: translateY(-20px); /* Bay lên trên */
+  opacity: 1; 
+  transform: translateY(-20px); 
 }
 
 .button-container {
@@ -74,12 +72,13 @@ body {
 .additional-info-table,
 .posting-state-table {
   width: 100%;
-  margin-top: 20px; /* Giảm khoảng cách trên */
+  margin-top: 20px; 
   border-collapse: collapse;
   margin-bottom: 20px;
-  background-color: rgb(241, 241, 241); 
-  border-radius: 8px; /* Bo góc cho bảng */
-  overflow: hidden; /* Để bo góc hoạt động */
+  background-color: #ffffff; 
+  border-radius: 8px; 
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
 .posting-table th,
@@ -91,12 +90,21 @@ body {
   border: 1px solid #cecece; 
   padding: 12px; 
   text-align: left;
+  background-color: #fafafa; 
 }
 
-.posting-table th {
-  background-color: #797979; 
+.posting-table th,
+.additional-info-table th,
+.posting-state-table th {
+  background-color: #4caf50; 
   color: white; 
   font-weight: bold;
+}
+
+.posting-table tr:hover,
+.additional-info-table tr:hover,
+.posting-state-table tr:hover {
+  background-color: #f1f1f1; 
 }
 
 /* Pagination styles */
@@ -108,23 +116,23 @@ body {
 }
 
 .pagination button {
-  padding: 8px 12px; /* Tăng kích thước nút phân trang */
+  padding: 8px 12px; 
   border: none;
-  background-color: #767676; /* Màu xanh dương cho nút phân trang */
+  background-color: #767676; 
   color: white;
   cursor: pointer;
   border-radius: 5px;
   font-size: 14px;
-  transition: background-color 0.3s; /* Hiệu ứng chuyển màu */
+  transition: background-color 0.3s; 
 }
 
 .pagination button:disabled {
-  background-color: #ccc; /* Màu xám cho nút bị vô hiệu hóa */
+  background-color: #ccc; 
   cursor: not-allowed;
 }
 
 .pagination button:hover:not(:disabled) {
-  background-color: #000000; /* Màu xanh đậm hơn khi hover */
+  background-color: #000000; 
 }
 
 /* Responsive styling */
@@ -135,12 +143,12 @@ body {
   }
 
   .button-container {
-    margin-top: 20px; /* Giảm khoảng cách trên */
+    margin-top: 20px; 
   }
 
   .posting-table,
   .additional-info-table,
   .posting-state-table {
-    font-size: 12px; /* Giảm kích thước chữ trên thiết bị nhỏ */
+    font-size: 12px; 
   }
 }

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
+import axios from 'axios';
 import {
   Table,
   TableHead,
@@ -8,6 +9,7 @@ import {
   TableCell,
   Button,
   Typography,
+  TextField
 } from "@mui/material";
 import "../styles/Posting.css";
 import BKLOGO from "../assets/BKLOGO.png";
@@ -20,34 +22,60 @@ const Posting = () => {
   const [isPostingStateVisible, setPostingStateVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [posting, setPosting] = useState([]);
+  const [postingState, setPostingState] = useState([]);
+  const [postingAdditionalInformation, setPostingAdditionalInformation] = useState([]);
+  
+  // Fetch data
+  useEffect(() => {
+    setLoading(true);
+    
+    // Fetch data from APIs
+    Promise.all([
+      axios.get('http://127.0.0.1:5000/api/v1/posting'),
+      axios.get('http://127.0.0.1:5000/api/v1/posting_state'),
+      axios.get('http://127.0.0.1:5000/api/v1/addtional_information')
+    ])
+    .then(([postingResponse, postingStateResponse, additionalInfoResponse]) => {
+      setPosting(postingResponse.data.data);
+      setPostingState(postingStateResponse.data.data);
+      setPostingAdditionalInformation(additionalInfoResponse.data.data);
+      setLoading(false);
+    })
+    .catch((error) => {
+      setError('Failed to fetch data');
+      setLoading(false);
+    });
+  }, []);
+  
+  // Handlers
+  const handleSearch = (e) => setSearchQuery(e.target.value);
 
-  // Mock data
-  const postings = Array.from({ length: 200 }).map((_, index) => ({
-    postingID: `P-${index + 1}`,
-    title: `Title ${index + 1}`,
-    description: `Description ${index + 1}`,
-    jobPostingURL: `https://example.com/job/${index + 1}`,
-    applicationType: index % 2 === 0 ? "Full-Time" : "Part-Time",
-    skillsDescription: `Skill ${index + 1}`,
-    workType: index % 3 === 0 ? "Remote" : "On-site",
-    zipCode: `1000${index % 10}`,
-    remoteAllowed: index % 2 === 0 ? "Yes" : "No",
-    location: `Location ${index + 1}`,
-    listedTime: `2024-12-2${index % 10}`,
-    applies: Math.floor(Math.random() * 100),
-    views: Math.floor(Math.random() * 500),
-    expiring: `2025-01-0${index % 10}`,
-    originalListedTime: `2024-12-01`,
-    timezoneOffset: index % 10,
-    applyRate: `${Math.random().toFixed(2)}`,
-    remainingTime: `${Math.floor(Math.random() * 24)} hours`,
-    closeTime: `2025-01-0${index % 10}`,
-    applicationURL: `https://example.com/apply/${index + 1}`,
-    postingDomain: "example.com",
-    experienceLevel: index % 2 === 0 ? "Junior" : "Senior",
-  }));
+  const filteredPostings = posting.filter(
+    (posting) =>
+      posting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      posting.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const totalPages = Math.ceil(postings.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredPostings.length / itemsPerPage);
+
+  // Pagination
+  const handlePageChange = (direction) => {
+    setCurrentPage((prev) => {
+      if (direction === "prev" && prev > 1) return prev - 1;
+      if (direction === "next" && prev < totalPages) return prev + 1;
+      return prev;
+    });
+  };
+
+  // Current data for the main posting table
+  const currentPostings = filteredPostings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Toggle visibility of tables
   const toggleTable = (tableName) => {
@@ -65,51 +93,7 @@ const Posting = () => {
     }
   };
 
-
-
-  
-
-  // Pagination
-  const handlePageChange = (direction) => {
-    setCurrentPage((prev) => {
-      if (direction === "prev" && prev > 1) return prev - 1;
-      if (direction === "next" && prev < totalPages) return prev + 1;
-      return prev;
-    });
-  };
-
-  // Current data for the main posting table
-  const currentPostings = postings.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Data for additional info table
-  const getAdditionalInfoData = () =>
-    currentPostings.map((posting) => ({
-      additionalInfoID: posting.postingID,
-      closeTime: posting.closeTime,
-      applicationURL: posting.applicationURL,
-      postingDomain: posting.postingDomain,
-      experienceLevel: posting.experienceLevel,
-    }));
-
-  // Data for posting state table
-  const getPostingStateData = () =>
-    currentPostings.map((posting) => ({
-      postingStateID: posting.postingID,
-      listedTime: posting.listedTime,
-      applies: posting.applies,
-      views: posting.views,
-      expiry: posting.expiring,
-      originalListedTime: posting.originalListedTime,
-      timezoneOffset: posting.timezoneOffset,
-      applyRate: posting.applyRate,
-      remainingTime: posting.remainingTime,
-    }));
-
   return (
-   
     <div className="posting-container">
       {/* Navbar */}
       <Navbar
@@ -118,23 +102,35 @@ const Posting = () => {
         routes={routes}
         active="Posting"
       />
-
+      
       {/* Header Section */}
       <div className="posting-header">
-      <div className="posting-header">
-          <Typography variant="h4" gutterBottom>
-            POSTING
-          </Typography>
-          <div className="bird" style={{ left: '10%', top: '10%' }}>
-              <img src={BKLOGO} alt="Logo" style={{ width: '150%' }} />
-            </div>
-            <div className="bird" style={{ left: '50%', top: '20%' }}>
-              <img src={BKLOGO} alt="Chim" style={{ width: '250%' }} />
-            </div>
-            <div className="bird" style={{ left: '80%', top: '15%' }}>
-              <img src={BKLOGO} alt="Chim" style={{ width: '350%' }} />
-            </div>
+        <Typography variant="h4" gutterBottom>
+          POSTING
+        </Typography>
+        <div className="bird" style={{ left: '10%', top: '10%' }}>
+          <img src={BKLOGO} alt="Logo" style={{ width: '150%' }} />
         </div>
+        <div className="bird" style={{ left: '50%', top: '20%' }}>
+          <img src={BKLOGO} alt="Chim" style={{ width: '250%' }} />
+        </div>
+        <div className="bird" style={{ left: '80%', top: '15%' }}>
+          <img src={BKLOGO} alt="Chim" style={{ width: '350%' }} />
+        </div>
+        
+        {/* Search and Add Posting Button */}
+        <TextField
+          label="Search"
+          variant="outlined"
+          fullWidth
+          onChange={handleSearch}
+          style={{ marginBottom: "20px" }}
+        />
+        <Button variant="contained" style={{ marginBottom: "20px" }}>
+          Add Posting
+        </Button>
+
+        {/* Toggle Buttons */}
         <div className="button-container">
           <Button
             variant="contained"
@@ -150,50 +146,65 @@ const Posting = () => {
       </div>
 
       {/* Main Posting Table */}
-      <Table className="posting-table">
+      <Table className="posting">
         <TableHead>
           <TableRow>
-            {[
-              "postingID",
-              "title",
-              "description",
-              "jobPostingURL",
-              "applicationType",
-              "skillsDescription",
-              "workType",
-              "zipCode",
-              "remoteAllowed",
-              "location",
-              "listedTime",
-              "applies",
-              "views",
-              "expiring",
-              "originalListedTime",
-              "timezoneOffset",
-              "applyRate",
-              "remainingTime",
-              "closeTime",
-              "applicationURL",
-              "postingDomain",
-              "experienceLevel",
-            ].map((key) => (
-              <TableCell key={key}>{key}</TableCell>
-            ))}
+            <TableCell><strong>PostingID</strong></TableCell>
+            <TableCell><strong>Title</strong></TableCell>
+            <TableCell><strong>Description</strong></TableCell>
+            <TableCell><strong>Job Posting URL</strong></TableCell>
+            <TableCell><strong>Application Type</strong></TableCell>
+            <TableCell><strong>Skills Description</strong></TableCell>
+            <TableCell><strong>Work Type</strong></TableCell>
+            <TableCell><strong>Zip Code</strong></TableCell>
+            <TableCell><strong>Remote Allowed</strong></TableCell>
+            <TableCell><strong>Location</strong></TableCell>
+            <TableCell><strong>Listed Time</strong></TableCell>
+            <TableCell><strong>Applies</strong></TableCell>
+            <TableCell><strong>Views</strong></TableCell>
+            <TableCell><strong>Expiring</strong></TableCell>
+            <TableCell><strong>Original Listed Time</strong></TableCell>
+            <TableCell><strong>Timezone Offset</strong></TableCell>
+            <TableCell><strong>Apply Rate</strong></TableCell>
+            <TableCell><strong>Remaining Time</strong></TableCell>
+            <TableCell><strong>Close Time</strong></TableCell>
+            <TableCell><strong>Application URL</strong></TableCell>
+            <TableCell><strong>Posting Domain</strong></TableCell>
+            <TableCell><strong>Experience Level</strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {currentPostings.map((posting, index) => (
             <TableRow key={index}>
-              {Object.keys(posting).map((key, idx) => (
-                <TableCell key={idx}>{posting[key]}</TableCell>
-              ))}
+              <TableCell>{posting.posting_id}</TableCell>
+              <TableCell>{posting.title}</TableCell>
+              <TableCell>{posting.description}</TableCell>
+              <TableCell>{posting.job_posting_url}</TableCell>
+              <TableCell>{posting.application_type}</TableCell>
+              <TableCell>{posting.skills_description}</TableCell>
+              <TableCell>{posting.worktype}</TableCell>
+              <TableCell>{posting.zip_code}</TableCell>
+              <TableCell>{posting.remote_allowed ? "Yes" : "No"}</TableCell>
+              <TableCell>{posting.location}</TableCell>
+              <TableCell>{posting.listed_time}</TableCell>
+              <TableCell>{posting.applies}</TableCell>
+              <TableCell>{posting.views}</TableCell>
+              <TableCell>{posting.expiring}</TableCell>
+              <TableCell>{posting.original_listed_time}</TableCell>
+              <TableCell>{posting.timezone_offset}</TableCell>
+              <TableCell>{posting.apply_rate}</TableCell>
+              <TableCell>{posting.remaining_time}</TableCell>
+              <TableCell>{posting.close_time}</TableCell>
+              <TableCell>{posting.application_url}</TableCell>
+              <TableCell>{posting.posting_domain}</TableCell>
+              <TableCell>{posting.experience_level}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
       {/* Additional Info Table */}
-      {isAdditionalInfoVisible && (
+      {isAdditionalInfoVisible && postingAdditionalInformation.length > 0 && (
         <Table className="additional-info-table">
           <TableHead>
             <TableRow>
@@ -205,7 +216,7 @@ const Posting = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {getAdditionalInfoData().map((info, index) => (
+            {postingAdditionalInformation.map((info, index) => (
               <TableRow key={index}>
                 <TableCell>{info.additionalInfoID}</TableCell>
                 <TableCell>{info.closeTime}</TableCell>
@@ -219,7 +230,7 @@ const Posting = () => {
       )}
 
       {/* Posting State Table */}
-      {isPostingStateVisible && (
+      {isPostingStateVisible && postingState.length > 0 && (
         <Table className="posting-state-table">
           <TableHead>
             <TableRow>
@@ -235,7 +246,7 @@ const Posting = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {getPostingStateData().map((state, index) => (
+            {postingState.map((state, index) => (
               <TableRow key={index}>
                 <TableCell>{state.postingStateID}</TableCell>
                 <TableCell>{state.listedTime}</TableCell>
@@ -272,8 +283,10 @@ const Posting = () => {
           Next
         </Button>
       </div>
+
+      {loading && <Typography variant="h6">Loading...</Typography>}
+      {error && <Typography variant="h6" color="error">{error}</Typography>}
     </div>
-  
   );
 };
 

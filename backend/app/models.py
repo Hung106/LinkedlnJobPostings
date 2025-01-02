@@ -79,8 +79,9 @@ class Posting(db.Model):
     remote_allowed = db.Column(db.Boolean, nullable=True)
     location = db.Column(db.String(255), nullable=True)
     company_id = db.Column(db.BigInteger, db.ForeignKey('company.company_id'), nullable=False)
+    apply_rate =db.Column(db.Float,nullable=True)
+    remaining_time = db.Column(db.Time(7), nullable=True)
     job_id = db.Column(db.BigInteger, db.ForeignKey('job.job_id'), nullable=False)
-
     states = db.relationship('PostingState', backref='posting', cascade="all, delete-orphan", lazy=True)
     additional_infos = db.relationship('AdditionalInfo', backref='posting', cascade="all, delete-orphan", lazy=True)
     
@@ -97,33 +98,29 @@ class Posting(db.Model):
             "remote_allowed": self.remote_allowed,
             "location": self.location,
             "company_id": self.company_id,
-            "job_id": self.job_id
+            "job_id": self.job_id,
+            "apply_rate": self.apply_rate,
+             "remaining_time": self.remaining_time.strftime('%H:%M:%S') if self.remaining_time else None,
         }
 
 class PostingState(db.Model):
     __tablename__ = 'posting_state'
     posting_state_id = db.Column(db.Integer, primary_key=True)
     posting_id = db.Column(db.Integer, db.ForeignKey('posting.posting_id'), nullable=False)
-    timezone_offset = db.Column(db.Integer, nullable=True)
     expiry = db.Column(db.DateTime, nullable=False)
     original_listed_time = db.Column(db.DateTime, nullable=False)
     listed_time = db.Column(db.DateTime, nullable=False)
     applies = db.Column(db.Integer, nullable=True)
-    remaining_time = db.Column(db.Integer, nullable=True)
-    apply_rate = db.Column(db.Float, nullable=True)
     views = db.Column(db.Integer, nullable=True)
 
     def to_dict(self):
         data = {
             'posting_state_id': self.posting_state_id,
             'posting_id': self.posting_id,
-            'timezone_offset': self.timezone_offset,
             'expiry': self.expiry,
             'original_listed_time': self.original_listed_time,
             'listed_time': self.listed_time,
             'applies': self.applies,
-            'remaining_time': self.remaining_time,
-            'apply_rate': self.apply_rate,
             'views': self.views,
         }
 

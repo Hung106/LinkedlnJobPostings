@@ -99,7 +99,7 @@ def add_job():
         salary_id = generate_unique_id()###
         salary_type = job_data['salary_type']
         value = job_data['value']
-        test = job_data['test']
+        #test = job_data['test']
         
 
         
@@ -110,14 +110,15 @@ def add_job():
                     INSERT INTO Job (job_id, job_description) VALUES (:job_id, :job_description)
                 """), {'job_id': job_id, 'job_description': job_description})
                 
-                # Thêm dữ liệu vào bảng Benefit
-                connection.execute(text("""
-                    INSERT INTO Job_Has_Benefit (job_id, benefit_id) VALUES (:job_id, :benefit_id)
-                """), {'job_id': job_id, 'benefit_id': benefit_id})
+              
                 
                 connection.execute(text("""
                     INSERT INTO Benefit (benefit_id, inferred) VALUES (:benefit_id, :inferred)
                 """), {'benefit_id': benefit_id, 'inferred': inferred})
+                  # Thêm dữ liệu vào bảng Benefit
+                connection.execute(text("""
+                    INSERT INTO Job_Has_Benefit (job_id, benefit_id) VALUES (:job_id, :benefit_id)
+                """), {'job_id': job_id, 'benefit_id': benefit_id})
                 connection.execute(text("""
                     INSERT INTO Benefit_Has_Benefit_Type (benefit_id, benefit_type_id) VALUES (:benefit_id, :benefit_type_id)
                 """), {'benefit_id': benefit_id, 'benefit_type_id': benefit_type_id})
