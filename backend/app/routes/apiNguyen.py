@@ -110,12 +110,14 @@ def add_job():
                     INSERT INTO Job (job_id, job_description) VALUES (:job_id, :job_description)
                 """), {'job_id': job_id, 'job_description': job_description})
                 
-              
                 
                 connection.execute(text("""
+                    SET IDENTITY_INSERT Benefit ON              
                     INSERT INTO Benefit (benefit_id, inferred) VALUES (:benefit_id, :inferred)
+                    SET IDENTITY_INSERT Benefit OFF
                 """), {'benefit_id': benefit_id, 'inferred': inferred})
-                  # Thêm dữ liệu vào bảng Benefit
+                
+                # Thêm dữ liệu vào bảng Benefit
                 connection.execute(text("""
                     INSERT INTO Job_Has_Benefit (job_id, benefit_id) VALUES (:job_id, :benefit_id)
                 """), {'job_id': job_id, 'benefit_id': benefit_id})
@@ -135,7 +137,9 @@ def add_job():
                 
                 
                 connection.execute(text("""
+                    SET IDENTITY_INSERT Salary ON   
                     INSERT INTO Salary (salary_id, job_id, currency, pay_period) VALUES (:salary_id, :job_id, :currency, :pay_period)
+                    SET IDENTITY_INSERT Salary OFF  
                 """), {'salary_id': salary_id, 'job_id': job_id, 'currency': currency, 'pay_period': pay_period})
                 
                 
