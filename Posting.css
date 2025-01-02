@@ -1,0 +1,154 @@
+
+body {
+  background-color: #e8f5e9;
+  margin: 0; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+}
+
+.posting-container {
+  padding: 20px;
+  border-radius: 8px; 
+  margin: 0;
+  background-color: transparent; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+}
+
+
+
+.posting-header {
+  position: relative; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 40px; 
+  cursor: pointer;
+}
+
+.posting-header h4 {
+  transition: color 0.3s, transform 0.3s; 
+}
+
+.posting-header:hover h4 {
+  color: #ff4081; 
+  transform: scale(1.1); 
+}
+
+/* Chim bay ra */
+.bird {
+  position: absolute;
+  width: 30px;
+  opacity: 0; 
+  transition: opacity 0.5s, transform 0.5s; 
+}
+
+.posting-header:hover .bird {
+  opacity: 1; 
+  transform: translateY(-20px); 
+}
+
+.button-container {
+  display: flex;
+  gap: 10px; 
+}
+
+.button-container button {
+  padding: 10px 15px; 
+  border: none;
+  border-radius: 5px;
+  background-color: #3d3d3d; 
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.4s; 
+}
+
+.button-container button:hover {
+  background-color: #070707; 
+}
+
+/* Table styles */
+.posting-table,
+.additional-info-table,
+.posting-state-table {
+  width: 100%;
+  margin-top: 20px; 
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  background-color: #ffffff; 
+  border-radius: 8px; 
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+
+.posting-table th,
+.posting-table td,
+.additional-info-table th,
+.additional-info-table td,
+.posting-state-table th,
+.posting-state-table td {
+  border: 1px solid #cecece; 
+  padding: 12px; 
+  text-align: left;
+  background-color: #fafafa; 
+}
+
+.posting-table th,
+.additional-info-table th,
+.posting-state-table th {
+  background-color: #4caf50; 
+  color: white; 
+  font-weight: bold;
+}
+
+.posting-table tr:hover,
+.additional-info-table tr:hover,
+.posting-state-table tr:hover {
+  background-color: #f1f1f1; 
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 8px 12px; 
+  border: none;
+  background-color: #767676; 
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: background-color 0.3s; 
+}
+
+.pagination button:disabled {
+  background-color: #ccc; 
+  cursor: not-allowed;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #000000; 
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .posting-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .button-container {
+    margin-top: 20px; 
+  }
+
+  .posting-table,
+  .additional-info-table,
+  .posting-state-table {
+    font-size: 12px; 
+  }
+}
