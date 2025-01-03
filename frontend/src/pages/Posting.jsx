@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import {
   Table,
@@ -9,6 +9,7 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import axios from "axios";
 import "../styles/Posting.css";
 import BKLOGO from "../assets/BKLOGO.png";
 
@@ -19,33 +20,114 @@ const Posting = () => {
   const [isAdditionalInfoVisible, setAdditionalInfoVisible] = useState(false);
   const [isPostingStateVisible, setPostingStateVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
+  const [postings, setPostings] = useState([]);
+  const [postingState, setPostingState] = useState([]);
+  const [additionalInfo, setAdditionalInfo] = useState([]);
+  const[editingPosting,setEditingPosting]=useState(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newPosting, setNewPosting] = useState({
+    title:'',
+    location:'',
+    company_id:'',
+    job_id:'',
+  });
+  const fetchPosting=() => {
+    // Fetch job data
+    axios.get("http://127.0.0.1:5000/posting")
+      .then((response) => {
+        setJobs(response.data.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        setError('Failed to fetch job data');
+        setLoading(false);
+      });
+    };
 
-  // Mock data
-  const postings = Array.from({ length: 200 }).map((_, index) => ({
-    postingID: `P-${index + 1}`,
-    title: `Title ${index + 1}`,
-    description: `Description ${index + 1}`,
-    jobPostingURL: `https://example.com/job/${index + 1}`,
-    applicationType: index % 2 === 0 ? "Full-Time" : "Part-Time",
-    skillsDescription: `Skill ${index + 1}`,
-    workType: index % 3 === 0 ? "Remote" : "On-site",
-    zipCode: `1000${index % 10}`,
-    remoteAllowed: index % 2 === 0 ? "Yes" : "No",
-    location: `Location ${index + 1}`,
-    listedTime: `2024-12-2${index % 10}`,
-    applies: Math.floor(Math.random() * 100),
-    views: Math.floor(Math.random() * 500),
-    expiring: `2025-01-0${index % 10}`,
-    originalListedTime: `2024-12-01`,
-    timezoneOffset: index % 10,
-    applyRate: `${Math.random().toFixed(2)}`,
-    remainingTime: `${Math.floor(Math.random() * 24)} hours`,
-    closeTime: `2025-01-0${index % 10}`,
-    applicationURL: `https://example.com/apply/${index + 1}`,
-    postingDomain: "example.com",
-    experienceLevel: index % 2 === 0 ? "Junior" : "Senior",
-  }));
+    const handleCreate=() =>{
+      if 
+      (!newPosting.title||
+      !newPosting.location ||
+      !newPosting.company_id ||
+      !newPosting.job_id ){
+        alert (' Fill full form.');
+        return;
+      }
+
+  axios
+.post('http://127.0.0.1:5000/posting', newCompany, {
+  headers: { 'Content-Type': 'application/json' },
+})
+.then(() => {
+  setNewPosting({
+    title:'',
+    location:'',
+    company_id:'',
+    job_id:'',
+  });
+  setIsCreating(false);
+  alert('Add Posting Success.');
+  fetchPosting();
+})
+.catch((error) => {
+  console.error('Failed to create Posting:', error.response?.data || error.message);
+  alert(`Failed to create Posting: ${error.response?.data?.message || 'Không xác định'}`);
+});
+};
+const handleUpdate = (posting_id, updatedData) => {
+  axios
+    .put(`http://127.0.0.1:5000/posting/${posting_id}`, updatedData, {
+      headers: { "Content-Type": "application/json" },
+    })
+    .then(() => {
+      alert(`Posting_id ${posting_id} updated successfully.`);
+      setEditingPosting(null); 
+      fetchPosting(); // 
+    })
+    .catch((error) => {
+      console.error(`Failed to update Posting ID ${posting_id}`, error.response?.data || error.message);
+      alert(`Failed to update company ID ${posting_id}: ${error.response?.data?.message || "Unknown error."}`);
+    });
+};
+
+const handleDelete = (posting_id) => {
+  if (!window.confirm(`Are you sure you want to delete This Posting ${posting_id}?`)) {
+    return;
+  }
+
+  axios
+    .delete(`http://127.0.0.1:5000/posting/${posting_id}`)
+    .then(() => {
+      alert(`Posting ID ${posting_id} deleted successfully.`);
+      fetchPosting(); // Fetch lại danh sách sau khi xóa
+    })
+    .catch((error) => {
+      console.error(`Failed to delete company with ID ${posting_id}`, error);
+      alert(`Failed to delete company ID ${posting_id}: ${error.response?.data?.message || "Unknown error."}`);
+    });
+};
+
+
+useEffect(() => {
+  // Fetch data từ ba API
+  const fetchData = async () => {
+    try {
+      const postingRes = await axios.get("http://127.0.0.1:5000/api/v1/posting");
+      const postingStateRes = await axios.get("http://127.0.0.1:5000/api/v1/posting_state");
+      const additionalInfoRes = await axios.get("http://127.0.0.1:5000/api/v1/additional_information");
+
+      setPostings(postingRes.data.postings);
+      setPostingState(postingStateRes.data.states);
+      setAdditionalInfo(additionalInfoRes.data.additional_information);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const totalPages = Math.ceil(postings.length / itemsPerPage);
 
@@ -65,10 +147,6 @@ const Posting = () => {
     }
   };
 
-
-
-  
-
   // Pagination
   const handlePageChange = (direction) => {
     setCurrentPage((prev) => {
@@ -84,32 +162,7 @@ const Posting = () => {
     currentPage * itemsPerPage
   );
 
-  // Data for additional info table
-  const getAdditionalInfoData = () =>
-    currentPostings.map((posting) => ({
-      additionalInfoID: posting.postingID,
-      closeTime: posting.closeTime,
-      applicationURL: posting.applicationURL,
-      postingDomain: posting.postingDomain,
-      experienceLevel: posting.experienceLevel,
-    }));
-
-  // Data for posting state table
-  const getPostingStateData = () =>
-    currentPostings.map((posting) => ({
-      postingStateID: posting.postingID,
-      listedTime: posting.listedTime,
-      applies: posting.applies,
-      views: posting.views,
-      expiry: posting.expiring,
-      originalListedTime: posting.originalListedTime,
-      timezoneOffset: posting.timezoneOffset,
-      applyRate: posting.applyRate,
-      remainingTime: posting.remainingTime,
-    }));
-
   return (
-   
     <div className="posting-container">
       {/* Navbar */}
       <Navbar
@@ -119,21 +172,153 @@ const Posting = () => {
         active="Posting"
       />
 
+{editingPosting && (
+  <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+    <Typography variant="h6">Update Job</Typography>
+
+    <TextField
+      label="Application Type"
+      fullWidth
+      value={editingPosting.application_type}
+      onChange={(e) => setEditingPosting({ ...editingPosting, application_type: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Apply Rate"
+      fullWidth
+      type="number"
+      value={editingPosting.apply_rate || ''}
+      onChange={(e) => setEditingPosting({ ...editingPosting, apply_rate: Number(e.target.value) || null })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Company ID"
+      fullWidth
+      value={editingPosting.company_id}
+      onChange={(e) => setEditingPosting({ ...editingPosting, company_id: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Work Type"
+      fullWidth
+      value={editingPosting.formatted_worktype}
+      onChange={(e) => setEditingPosting({ ...editingPosting, formatted_worktype: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Job ID"
+      fullWidth
+      value={editingPosting.job_id}
+      onChange={(e) => setEditingPosting({ ...editingPosting, job_id: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Job Posting URL"
+      fullWidth
+      value={editingPosting.job_posting_url}
+      onChange={(e) => setEditingPosting({ ...editingPosting, job_posting_url: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Location"
+      fullWidth
+      value={editingPosting.location}
+      onChange={(e) => setEditingPosting({ ...editingPosting, location: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Posting Description"
+      fullWidth
+      multiline
+      rows={4}
+      value={editingPosting.posting_description}
+      onChange={(e) => setEditingPosting({ ...editingPosting, posting_description: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Posting ID"
+      fullWidth
+      type="number"
+      value={editingPosting.posting_id}
+      onChange={(e) => setEditingPosting({ ...editingPosting, posting_id: Number(e.target.value) })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Remaining Time"
+      fullWidth
+      value={editingPosting.remaining_time || ''}
+      onChange={(e) => setEditingPosting({ ...editingPosting, remaining_time: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Remote Allowed"
+      fullWidth
+      value={editingPosting.remote_allowed || ''}
+      onChange={(e) => setEditingPosting({ ...editingPosting, remote_allowed: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Skills Description"
+      fullWidth
+      multiline
+      rows={4}
+      value={editingPosting.skills_description}
+      onChange={(e) => setEditingPosting({ ...editingPosting, skills_description: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="Title"
+      fullWidth
+      value={editingPosting.title}
+      onChange={(e) => setEditingPosting({ ...editingPosting, title: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <TextField
+      label="ZIP Code"
+      fullWidth
+      value={editingPosting.zip_code}
+      onChange={(e) => setEditingPosting({ ...editingPosting, zip_code: e.target.value })}
+      style={{ marginBottom: '10px' }}
+    />
+
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={() => handleUpdate(editingPosting.job_id, editingPosting)}
+      style={{ marginRight: '10px' }}
+    >
+      Save
+    </Button>
+    <Button
+      variant="outlined"
+      color="secondary"
+      onClick={() => setEditingPosting(null)}
+    >
+      Cancel
+    </Button>
+  </div>
+)}
+
       {/* Header Section */}
       <div className="posting-header">
-      <div className="posting-header">
-          <Typography variant="h4" gutterBottom>
-            POSTING
-          </Typography>
-          <div className="bird" style={{ left: '10%', top: '10%' }}>
-              <img src={BKLOGO} alt="Logo" style={{ width: '150%' }} />
-            </div>
-            <div className="bird" style={{ left: '50%', top: '20%' }}>
-              <img src={BKLOGO} alt="Chim" style={{ width: '250%' }} />
-            </div>
-            <div className="bird" style={{ left: '80%', top: '15%' }}>
-              <img src={BKLOGO} alt="Chim" style={{ width: '350%' }} />
-            </div>
+        <Typography variant="h4" gutterBottom>
+          POSTING
+        </Typography>
+        <div className="bird" style={{ left: "10%", top: "10%" }}>
+          <img src={BKLOGO} alt="Logo" style={{ width: "150%" }} />
         </div>
         <div className="button-container">
           <Button
@@ -153,40 +338,51 @@ const Posting = () => {
       <Table className="posting-table">
         <TableHead>
           <TableRow>
-            {[
-              "postingID",
-              "title",
-              "description",
-              "jobPostingURL",
-              "applicationType",
-              "skillsDescription",
-              "workType",
-              "zipCode",
-              "remoteAllowed",
-              "location",
-              "listedTime",
-              "applies",
-              "views",
-              "expiring",
-              "originalListedTime",
-              "timezoneOffset",
-              "applyRate",
-              "remainingTime",
-              "closeTime",
-              "applicationURL",
-              "postingDomain",
-              "experienceLevel",
-            ].map((key) => (
-              <TableCell key={key}>{key}</TableCell>
-            ))}
+            <TableCell><strong>Posting ID</strong></TableCell>
+            <TableCell><strong>Title</strong></TableCell>
+            <TableCell><strong>Description</strong></TableCell>
+            <TableCell><strong>Job Posting URL</strong></TableCell>
+            <TableCell><strong>Application Type</strong></TableCell>
+            <TableCell><strong>Skills Description</strong></TableCell>
+            <TableCell><strong>Work Type</strong></TableCell>
+            <TableCell><strong>Zip Code</strong></TableCell>
+            <TableCell><strong>Actions</strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {currentPostings.map((posting, index) => (
-            <TableRow key={index}>
-              {Object.keys(posting).map((key, idx) => (
-                <TableCell key={idx}>{posting[key]}</TableCell>
-              ))}
+          {currentPostings.map((posting) => (
+            <TableRow key={posting.posting_id}>
+              <TableCell>{posting.posting_id}</TableCell>
+              <TableCell>{posting.title}</TableCell>
+              <TableCell>{posting.posting_description}</TableCell>
+              <TableCell>
+                <a href={posting.job_posting_url} target="_blank" rel="noopener noreferrer">
+                  Link
+                </a>
+              </TableCell>
+              <TableCell>{posting.application_type}</TableCell>
+              <TableCell>{posting.skills_description}</TableCell>
+              <TableCell>{posting.formatted_worktype}</TableCell>
+              <TableCell>{posting.zip_code}</TableCell>
+              <TableCell>
+                 <Button
+                                        variant="contained"
+                                        color="Cyan"
+                                        onClick={() => setEditingPosting(posting.posting_id)} // Hiển thị form chỉnh sửa với dữ liệu của công ty
+                                        style={{ marginRight: '10px' }}
+                                      >
+                                        Update
+                                      </Button>
+                
+                                      <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        style={{ marginRight: '10px' }}
+                                        onClick={() => handleDelete(posting.posting_id)}
+                                      >
+                                        Delete
+                                      </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -205,13 +401,17 @@ const Posting = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {getAdditionalInfoData().map((info, index) => (
-              <TableRow key={index}>
-                <TableCell>{info.additionalInfoID}</TableCell>
-                <TableCell>{info.closeTime}</TableCell>
-                <TableCell>{info.applicationURL}</TableCell>
-                <TableCell>{info.postingDomain}</TableCell>
-                <TableCell>{info.experienceLevel}</TableCell>
+            {additionalInfo.map((info) => (
+              <TableRow key={info.additional_info_id}>
+                <TableCell>{info.additional_info_id}</TableCell>
+                <TableCell>{info.close_time}</TableCell>
+                <TableCell>
+                  <a href={info.application_url} target="_blank" rel="noopener noreferrer">
+                    Link
+                  </a>
+                </TableCell>
+                <TableCell>{info.posting_domain}</TableCell>
+                <TableCell>{info.formatted_experience_level}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -228,24 +428,16 @@ const Posting = () => {
               <TableCell>Applies</TableCell>
               <TableCell>Views</TableCell>
               <TableCell>Expiry</TableCell>
-              <TableCell>Original Listed Time</TableCell>
-              <TableCell>Timezone Offset</TableCell>
-              <TableCell>Apply Rate</TableCell>
-              <TableCell>Remaining Time</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {getPostingStateData().map((state, index) => (
-              <TableRow key={index}>
-                <TableCell>{state.postingStateID}</TableCell>
-                <TableCell>{state.listedTime}</TableCell>
+            {postingState.map((state) => (
+              <TableRow key={state.posting_state_id}>
+                <TableCell>{state.posting_state_id}</TableCell>
+                <TableCell>{state.listed_time}</TableCell>
                 <TableCell>{state.applies}</TableCell>
                 <TableCell>{state.views}</TableCell>
                 <TableCell>{state.expiry}</TableCell>
-                <TableCell>{state.originalListedTime}</TableCell>
-                <TableCell>{state.timezoneOffset}</TableCell>
-                <TableCell>{state.applyRate}</TableCell>
-                <TableCell>{state.remainingTime}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -273,7 +465,6 @@ const Posting = () => {
         </Button>
       </div>
     </div>
-  
   );
 };
 
