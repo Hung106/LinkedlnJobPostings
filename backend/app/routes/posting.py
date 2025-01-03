@@ -54,29 +54,37 @@ def get_posting_states():
 # GET: /additional_information - Lấy thông tin bổ sung
 @posting_bp.route('/additional_information', methods=['GET'])
 def get_additional_information():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
     try:
-        infos = AdditionalInfo.query.all()
-
-        if not infos:
+        # Query with pagination
+        pagination = AdditionalInfo.query.order_by(AdditionalInfo.additional_info_id).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        if not pagination.items:
             return jsonify({
-                "current_page": 1,
-                "pages": 1,
-                "total": 1,
-                "additional_information": [None]
-            }), 200
+                "message": "No additional information found",
+                "current_page": page,
+                "pages": pagination.pages,
+                "total": pagination.total,
+                "additional_information": []
+            }), 404
+
+        additional_information = [info.to_dict() if info else None for info in pagination.items]
 
         return jsonify({
-            "current_page": 1,
-            "pages": 1,
-            "total": len(infos),
-            "additional_information": [info.to_dict() for info in infos]
+            "additional_information": additional_information,
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "current_page": pagination.page
         }), 200
 
     except Exception as e:
         error_details = traceback.format_exc()
         print(f"Error in get_additional_information: {error_details}")
         return jsonify({"error": "An unexpected error occurred", "details": error_details}), 500
-
 # POST: /posting - Tạo bài đăng mới
 @posting_bp.route('/posting', methods=['POST'])
 def create_posting():

@@ -17,6 +17,7 @@ const Job = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [newJob,setNewJob ] = useState({
+    job_id:'',
     job_description: '',
     industry_name: '',
     skill_name: '',
@@ -46,18 +47,23 @@ const Job = () => {
 
     const handleCreate = () => {
       if (
+        !newJob.job_id ||
         !newJob.job_description ||
-        !newJob.industry_name ||
-        !newJob.skill_name ||
-        !newJob.salary_type ||
-        !newJob.value ||
-        !newJob.currency ||
-        !newJob.pay_period
+        !newJob.inferred||
+        !newJob.benefit_type_id ||
+        !newJob.skill_abr||
+        !newJob.industry_id ||
+        !newJob. currency ||
+        !newJob. pay_period ||
+        !newJob. salary_type||
+        !newJob. value 
       ) {
         alert("Please fill in all fields");
         return;
       }
-    
+
+      // Mapping dữ liệu frontend sang backend
+  
       axios
         .post("http://127.0.0.1:5000/add_job", newJob, {
           headers: { 'Content-Type': 'application/json' },
@@ -65,12 +71,14 @@ const Job = () => {
         .then(() => {
           setNewJob({
             job_description: '',
-            industry_name: '',
-            skill_name: '',
+            inferred:'',
+            benefit_type_id:'',
+            skill_abr:'',
+            industry_id: '',
+            currency:'',
+            pay_period: '',
             salary_type: '',
             value: '',
-            currency: '',
-            pay_period: '',
           });
           setIsCreating(false);
           alert('Create Job Success.');
@@ -132,16 +140,18 @@ const Job = () => {
   }, []);
 
     // Fetch benefit data
-    axios.get("http://127.0.0.1:5000/benefit")
-      .then((response) => {
-        setBenefits(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError('Failed to fetch benefit data');
-        setLoading(false);
-      });
- [];
+    useEffect(() => {
+      axios.get("http://127.0.0.1:5000/benefit")
+        .then((response) => {
+          setBenefits(response.data.data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          setError('Failed to fetch benefit data');
+          setLoading(false);
+        });
+    }, []);
+    
 
   const totalPages = Math.ceil(jobs.length / itemsPerPage);
 
@@ -181,6 +191,15 @@ const Job = () => {
       {editingJob && (
         <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
           <Typography variant="h6">Update Job</Typography>
+
+          <TextField
+            label="Job ID"
+            fullWidth
+            value={editingJob.job_id}
+            onChange={(e) => setEditingJob({ ...editingJob, job_id: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+
           <TextField
             label="Job Description"
             fullWidth
@@ -188,18 +207,12 @@ const Job = () => {
             onChange={(e) => setEditingJob({ ...editingJob, job_description: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
+          
           <TextField
-            label="Industry Name"
+            label="Skill abr"
             fullWidth
-            value={editingJob.industry_name}
-            onChange={(e) => setEditingJob({ ...editingJob, industry_name: e.target.value })}
-            style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            label="Skill Name"
-            fullWidth
-            value={editingJob.skill_name}
-            onChange={(e) => setEditingJob({ ...editingJob, skill_name: e.target.value })}
+            value={editingJob.skill_abr}
+            onChange={(e) => setEditingJob({ ...editingJob, skill_abr: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
           <TextField
@@ -231,6 +244,14 @@ const Job = () => {
             onChange={(e) => setEditingJob({ ...editingJob, pay_period: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
+          <TextField
+            label="Benefit Type Id"
+            fullWidth
+            value={editingJob.benefit_type_id}
+            onChange={(e) => setEditingJob({ ...editingJob, benefit_type_id: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+          
           <Button
             variant="contained"
             color="primary"
@@ -253,6 +274,13 @@ const Job = () => {
         <div style={{ margin: '80px 0', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
           <Typography variant="h6">Create New Job</Typography>
           <TextField
+            label="Job_id"
+            fullWidth
+            value={newJob.job_id}
+            onChange={(e) => setNewJob({ ...newJob, job_id: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+          <TextField
             label="Job Description"
             fullWidth
             value={newJob.job_description}
@@ -260,17 +288,46 @@ const Job = () => {
             style={{ marginBottom: '10px' }}
           />
           <TextField
-            label="Industry Name"
+            label="Inferred"
             fullWidth
-            value={newJob.industry_name}
-            onChange={(e) => setNewJob({ ...newJob, industry_name: e.target.value })}
+            value={newJob.inferred}
+            onChange={(e) => setNewJob({ ...newJob, inferred: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
           <TextField
-            label="Skill Name"
+            label="Benefit Type ID"
             fullWidth
-            value={newJob.skill_name}
-            onChange={(e) => setNewJob({ ...newJob, skill_name: e.target.value })}
+            value={newJob.benefit_type_id}
+            onChange={(e) => setNewJob({ ...newJob,benefit_type_id: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+          <TextField
+            label="Skill Abr"
+            fullWidth
+            value={newJob.skill_abr}
+            onChange={(e) => setNewJob({ ...newJob, skill_abr: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+          <TextField
+            label="Industry ID"
+            fullWidth
+            value={newJob.industry_id}
+            onChange={(e) => setNewJob({ ...newJob, industry_id: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+
+          <TextField
+            label="Currency"
+            fullWidth
+            value={newJob.currency}
+            onChange={(e) => setNewJob({ ...newJob, currency: e.target.value })}
+            style={{ marginBottom: '10px' }}
+          />
+          <TextField
+            label="Pay Period"
+            fullWidth
+            value={newJob.pay_period}
+            onChange={(e) => setNewJob({ ...newJob, pay_period: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
           <TextField
@@ -286,20 +343,6 @@ const Job = () => {
             type="number"
             value={newJob.value}
             onChange={(e) => setNewJob({ ...newJob, value: Number(e.target.value) || '' })}
-            style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            label="Currency"
-            fullWidth
-            value={newJob.currency}
-            onChange={(e) => setNewJob({ ...newJob, currency: e.target.value })}
-            style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            label="Pay Period"
-            fullWidth
-            value={newJob.pay_period}
-            onChange={(e) => setNewJob({ ...newJob, pay_period: e.target.value })}
             style={{ marginBottom: '10px' }}
           />
           <Button
@@ -343,7 +386,7 @@ const Job = () => {
             <table className="job-table">
               <thead>
                 <tr>
-                  <th colSpan="10" className="header">
+                  <th colSpan="14" className="header">
                     JOB
                   </th>
                 </tr>
@@ -354,6 +397,9 @@ const Job = () => {
                   <th rowSpan="2">Industry</th>
                   <th rowSpan="2">Skill</th>
                   <th colSpan="4">Salary</th>
+                 <th rowSpan="3"colSpan = "4"
+                 >Actions</th>
+
                 </tr>
                 <tr className="sub-header">
                   <th>Inferred</th>
@@ -362,6 +408,7 @@ const Job = () => {
                   <th>Value</th>
                   <th>Currency</th>
                   <th>Pay period</th>
+                  
                 </tr>
               </thead>
               <tbody>

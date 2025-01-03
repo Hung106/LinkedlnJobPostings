@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.models import db
 from sqlalchemy import func
-from app.models import db, Posting, PostingState, AdditionalInfo
+from app.models import db, Posting, PostingState, AdditionalInfo, Salary, Salary_Type
 from flask_cors import CORS
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -45,7 +45,6 @@ def salary_distribution_by_location():
         return jsonify({"error": "Location parameter is required"}), 400
 
     print(f"Location received: {location}")
-
     try:
         query = db.session.query(
             Posting.location,
@@ -68,7 +67,8 @@ def salary_distribution_by_location():
                     else_=None
                 )
             ).label('avg_max_salary')
-        ).join(Salary_Type, Salary.salary_id == Salary_Type.salary_id) \
+        ).join(Salary, Posting.job_id == Salary.job_id) \
+        .join(Salary_Type, Salary.salary_id == Salary_Type.salary_id) \
          .filter(Posting.location.ilike(f"%{location}%")) \
          .group_by(Posting.location, Salary.pay_period) \
          .order_by(Posting.location) \

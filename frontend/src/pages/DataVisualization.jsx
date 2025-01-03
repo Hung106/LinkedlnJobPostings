@@ -28,11 +28,69 @@ const DataVisualization = () => {
   const [currentChart, setCurrentChart] = useState("worktype"); 
   const [keywordsData, setKeywordsData] = useState([]);
   const [jobTitleData, setJobTitleData] = useState(null);
+  const [worktypeData, setWorkTypeData] = useState(null);
+  const [salaryData, setSalaryData] = useState(null);
   const [locations, setLocations] = useState(["United States","New York, NY","Chicago, IL","Houston, TX","Dallas, TX","Cushing, OK","Atlanta, GA","Austin, TX","Boston, MA"]);
   const [companyData, setCompanyData] = useState([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState(null);
   const [companyChartData, setCompanyChartData] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null)
+  useEffect(() => {
+    async function fetchWorktypeData() {
+      try {
+        const totalPages = 10; // Tổng số trang muốn lấy
+        const allPostings = [];
+  
+        for (let page = 1; page <= totalPages; page++) {
+          const response = await fetch(`http://127.0.0.1:5000/api/v1/posting?page=${page}&per_page=10`);
+          const data = await response.json();
+  
+          if (Array.isArray(data.postings) && data.postings.length > 0) {
+            allPostings.push(...data.postings);
+          }
+        }
+  
+        // Extract the worktype data and count occurrences
+        const worktypeCounts = allPostings.reduce((acc, item) => {
+          const worktype = item.formatted_worktype;
+          if (!acc[worktype]) acc[worktype] = 0;
+          acc[worktype] += 1;
+          return acc;
+        }, {});
+  
+        const worktypes = Object.keys(worktypeCounts);
+        const counts = Object.values(worktypeCounts);
+  
+        setWorkTypeData({
+          labels: worktypes,
+          datasets: [
+            {
+              label: "Count",
+              data: counts,
+              backgroundColor: [
+                "#ff6384",
+                "#36a2eb",
+                "#ffce56",
+                "#4bc0c0",
+                "#9966ff",
+                "#ff9f40",
+                "#66ff66",
+                "#ff9999",
+                "#66ccff",
+                "#c0c0c0",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Error fetching worktype data:", error);
+      }
+    }
+  
+    fetchWorktypeData();
+  }, []);
+  
   useEffect(() => {
     // Set default selected location after locations are initialized
     if (locations.length > 0 && !selectedLocation) {
@@ -50,6 +108,70 @@ const DataVisualization = () => {
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
+  useEffect(() => {
+    async function fetchSalaryData() {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:5000/api/v1/salary_distribution_by_location?location=${selectedLocation}`
+        );
+        const data = await response.json();
+  
+        if (Array.isArray(data) && data.length > 0) {
+          // Group data by pay_period
+          const groupedData = data.reduce((acc, item) => {
+            const period = item.pay_period || "Unknown";
+            if (!acc[period]) acc[period] = [];
+            acc[period].push(item);
+            return acc;
+          }, {});
+  
+          // Extract labels (pay_period) and datasets for chart
+          const labels = Object.keys(groupedData);
+          const datasets = [
+            {
+              label: "Average Min Salary",
+              data: labels.map((period) =>
+                groupedData[period].reduce(
+                  (sum, item) => sum + (item.avg_min_salary || 0),
+                  0
+                ) / groupedData[period].length
+              ),
+              backgroundColor: "#ff6384",
+            },
+            {
+              label: "Average Med Salary",
+              data: labels.map((period) =>
+                groupedData[period].reduce(
+                  (sum, item) => sum + (item.avg_med_salary || 0),
+                  0
+                ) / groupedData[period].length
+              ),
+              backgroundColor: "#36a2eb",
+            },
+            {
+              label: "Average Max Salary",
+              data: labels.map((period) =>
+                groupedData[period].reduce(
+                  (sum, item) => sum + (item.avg_max_salary || 0),
+                  0
+                ) / groupedData[period].length
+              ),
+              backgroundColor: "#4bc0c0",
+            },
+          ];
+  
+          // Set data for chart
+          setSalaryData({ labels, datasets });
+        } else {
+          setSalaryData(null);
+        }
+      } catch (error) {
+        console.error("Error fetching salary:", error);
+      }
+    }
+  
+    fetchSalaryData();
+  }, [selectedLocation]);
   useEffect(() => {
     async function fetchJobTitleData() {
       try {
@@ -209,22 +331,74 @@ const DataVisualization = () => {
           <Typography variant="h5" className="data-visualization-title">
             Worktype Distribution
           </Typography>
-          <img src={worktypeChart} alt="Worktype Chart" className="chart-image" />
+          {worktypeData ? (
+            <Bar
+              data={worktypeData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: "Worktype Distribution" },
+                },
+                scales: {
+                  x: {
+                    title: { display: true, text: "Work Types" },
+                  },
+                  y: {
+                    title: { display: true, text: "Count" },
+                    beginAtZero: true,
+                  },
+                },
+              }}
+            />
+          ) : (
+            <Typography variant="body2" className="chart-description">
+              No data available for worktype distribution.
+            </Typography>
+          )}
           <Typography variant="body2" className="chart-description">
             This chart illustrates the distribution of different work types such as Full-time, Part-time, and Contract.
           </Typography>
         </div>
-      );
+      );    
     } else if (currentChart === "salary") {
       return (
         <div className="chart-container">
           <Typography variant="h5" className="data-visualization-title">
-            Salary Distribution by Pay Period
+            Salary distribution by {selectedLocation}
           </Typography>
-          <img src={salaryChart} alt="Salary Chart" className="chart-image" />
-          <Typography variant="body2" className="chart-description">
-            This chart shows salary distribution based on payment periods like Hourly, Weekly, and Monthly.
-          </Typography>
+          <div style={{ marginBottom: "20px", textAlign: "center" }}>
+            <Typography variant="h6">Select Location</Typography>
+            <Select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              style={{ minWidth: "200px" }}
+            >
+              {locations.map((loc) => (
+                <MenuItem key={loc} value={loc}>
+                  {loc}
+                </MenuItem>
+              ))}
+            </Select>
+          </div>
+          {salaryData ? (
+            <Bar
+              data={salaryData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { position: "top" },
+                  title: { display: true, text: `Salary Distribution in ${selectedLocation}` },
+                },
+                scales: {
+                  x: { title: { display: true, text: "Job Titles" } },
+                  y: { title: { display: true, text: "Frequency" }, beginAtZero: true },
+                },
+              }}
+            />
+          ) : (
+            <Typography>Loading chart data...</Typography>
+          )}
         </div>
       );
     } else if (currentChart === "keywords") {

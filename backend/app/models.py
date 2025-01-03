@@ -21,7 +21,7 @@ class Salary(db.Model):
         }
 class Salary_Type(db.Model):
     __tablename__ = 'salary_type'
-    salary_id = db.Column(db.BigInteger, primary_key=True)
+    salary_id = db.Column(db.BigInteger, db.ForeignKey('salary.salary_id'), primary_key=True)
     salary_type = db.Column(db.String(10), nullable=False)
     value = db.Column(db.Float, nullable=True)
     
@@ -35,9 +35,9 @@ class Salary_Type(db.Model):
 class Company(db.Model):
     __tablename__ = 'company'
     company_id = db.Column(db.BigInteger, primary_key=True)
-    company_name = db.Column(db.String(255), nullable=True)
+    name = db.Column(db.String(255), nullable=True)
     company_size = db.Column(db.Integer, nullable=True)
-    company_url = db.Column(db.String(255), nullable=True)
+    url = db.Column(db.String(255), nullable=True)
     description = db.Column(db.Text, nullable=True)
     
     postings = db.relationship('Posting', backref='company', lazy=True)
@@ -45,9 +45,9 @@ class Company(db.Model):
     def to_dict(self):
         return {
             'company_id': self.company_id,
-            'company_name': self.company_name,
+            'name': self.name,
             'company_size': self.company_size,
-            'company_url': self.company_url,
+            'url': self.url,
             'description': self.description
         }
 

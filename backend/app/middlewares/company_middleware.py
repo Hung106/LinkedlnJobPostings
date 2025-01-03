@@ -13,13 +13,13 @@ def validate_company_data(func):
             errors.append("Company ID is required.")
 
         # Kiểm tra và chuẩn hóa company_name
-        company_name = data.get("company_name")
-        if not company_name or (isinstance(company_name, str) and company_name.strip() == ""):
+        name = data.get("name")
+        if not name or (isinstance(name, str) and name.strip() == ""):
             errors.append("Company name is required.")
         else:
-            company_name = re.sub(r"[^a-zA-Z0-9 &\-|]", "", company_name)
-            company_name = re.sub(r"\s+", " ", company_name).strip()
-            data["company_name"] = company_name
+            name = re.sub(r"[^a-zA-Z0-9 &\-|]", "", name)
+            name = re.sub(r"\s+", " ", name).strip()
+            data["name"] = name
 
         # KIểm tra và làm sạch description
         description = data.get("description")
@@ -207,11 +207,11 @@ def validate_update_company_data(func):
         errors = []
 
         #Chuẩn hóa company_name
-        company_name = data.get("company_name")
-        if company_name:
-            company_name = re.sub(r"[^a-zA-Z0-9 &\-|]", "", company_name)
-            company_name = re.sub(r"\s+", " ", company_name).strip()
-            data["company_name"] = company_name
+        name = data.get("name")
+        if name:
+            name = re.sub(r"[^a-zA-Z0-9 &\-|]", "", name)
+            name = re.sub(r"\s+", " ", name).strip()
+            data["name"] = name
 
         #Làm sạch description
         description = data.get("description")

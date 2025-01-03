@@ -52,7 +52,7 @@ const Company = () => {
       alert('Vui lòng điền đầy đủ thông tin.');
       return;
     }
-
+  
     axios
       .post('http://127.0.0.1:5000/api/company/', newCompany, {
         headers: { 'Content-Type': 'application/json' },
@@ -67,14 +67,13 @@ const Company = () => {
         });
         setIsCreating(false);
         alert('Tạo công ty thành công.');
-        console.log('Dữ liệu gửi lên:', newCompany);
+        fetchCompanies(); // Fetch the updated list of companies
       })
       .catch((error) => {
         console.error('Failed to create company:', error.response?.data || error.message);
         alert(`Lỗi khi tạo công ty: ${error.response?.data?.message || 'Không xác định'}`);
       });
-  };
-
+  };  
   const handleUpdate = (companyId, updatedData) => {
     axios
       .put(`http://127.0.0.1:5000/api/company/${companyId}`, updatedData, {
@@ -542,7 +541,7 @@ const Company = () => {
                               <TableBody>
                                 {specialityData[company.company_id]?.data.map((record, index) => (
                                   <TableRow key={index}>
-                                    <TableCell>{record.Speciality_id}</TableCell>
+                                    <TableCell>{record.speciality_id}</TableCell>
                                     <TableCell>{record.speciality}</TableCell>
                                   </TableRow>
                                 ))}

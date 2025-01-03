@@ -58,7 +58,8 @@ def job():
                 JOIN Job_Has_Industry G ON A.job_id = G.job_id
                 JOIN Company_Industry H ON G.industry_id = H.industry_id
                 JOIN Salary J ON A.job_id = J.job_id
-                JOIN Salary_Type K ON J.salary_id = K.salary_id;
+                JOIN Salary_Type K ON J.salary_id = K.salary_id
+                ORDER BY A.job_id;
             """))
             rows = [dict(row._mapping) for row in result]
             return jsonify(
@@ -82,7 +83,7 @@ def add_job():
         job_data = request.get_json()
 
         # Dữ liệu cho bảng Job
-        job_id = generate_unique_id() ###
+        job_id = job_data['job_id']
         job_description = job_data['job_description']
         
         benefit_id = generate_unique_id() ###
@@ -150,7 +151,7 @@ def add_job():
         
         return jsonify({
             "success": True,
-            "message": "Job created successfully"
+            "message": f"Job {job_id} created successfully"
         }), 201
     except Exception as e:
         return jsonify({
@@ -174,30 +175,30 @@ def update_job(job_id):
                     """), {'job_description': update_data['job_description'], 'job_id': job_id})
                 
                 # Cập nhật bảng Benefit nếu có trường `inferred`
-                if "inferred" in update_data:
-                    connection.execute(text("""
-                        UPDATE Benefit
-                        SET inferred = :inferred
-                        WHERE benefit_id = (
-                            SELECT benefit_id FROM Job_Has_Benefit WHERE job_id = :job_id
-                        )
-                    """), {'inferred': update_data['inferred'], 'job_id': job_id})
+                # if "inferred" in update_data:
+                #     connection.execute(text("""
+                #         UPDATE Benefit
+                #         SET inferred = :inferred
+                #         WHERE benefit_id IN (
+                #             SELECT benefit_id FROM Job_Has_Benefit WHERE job_id = :job_id
+                #         )
+                #     """), {'inferred': update_data['inferred'], 'job_id': job_id})
 
                 # Cập nhật bảng Benefit_Has_Benefit_Type nếu có `benefit_type_id`
-                if "benefit_type_id" in update_data:
-                    connection.execute(text("""
-                        UPDATE Benefit_Has_Benefit_Type
-                        SET benefit_type_id = :benefit_type_id
-                        WHERE benefit_id = (
-                            SELECT benefit_id FROM Job_Has_Benefit WHERE job_id = :job_id
-                        )
-                    """), {'benefit_type_id': update_data['benefit_type_id'], 'job_id': job_id})
+                # if "benefit_type_id" in update_data:
+                #     connection.execute(text("""
+                #         UPDATE Benefit_Has_Benefit_Type
+                #         SET benefit_type_id = :benefit_type_id
+                #         WHERE benefit_id IN (
+                #             SELECT benefit_id FROM Job_Has_Benefit WHERE job_id = :job_id
+                #         )
+                #     """), {'benefit_type_id': update_data['benefit_type_id'], 'job_id': job_id})
 
                 # Cập nhật bảng Requires nếu có `skill_abr`
-                if "skill_abr" in update_data:
-                    connection.execute(text("""
-                        UPDATE Requires SET skill_abr = :skill_abr WHERE job_id = :job_id
-                    """), {'skill_abr': update_data['skill_abr'], 'job_id': job_id})
+                # if "skill_abr" in update_data:
+                #     connection.execute(text("""
+                #         UPDATE Requires SET skill_abr = :skill_abr WHERE job_id = :job_id
+                #     """), {'skill_abr': update_data['skill_abr'], 'job_id': job_id})
 
                 # Cập nhật bảng Job_Has_Industry nếu có `industry_id`
                 if "industry_id" in update_data:

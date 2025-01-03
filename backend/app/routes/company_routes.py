@@ -44,7 +44,7 @@ company_routes.route('/specialities', methods=['GET'])(company_controller.get_al
 company_routes.route('/<id>', methods=['GET'])(company_controller.get_company_by_id)
 company_routes.route('/industries/<id>', methods=['GET'])(company_controller.get_industries_by_company_id)
 company_routes.route('/industry/<id>', methods=['GET'])(company_controller.get_industry_by_id)
-company_routes.route('/speciality/<id>', methods=['GET'])(company_controller.get_speciality_by_id)
+company_routes.route('/specialities/<id>', methods=['GET'])(company_controller.get_speciality_by_id)
 company_routes.route('/location/<id>', methods=['GET'])(company_controller.get_location_by_id)
 company_routes.route('/employee_count/<id>', methods=['GET'])(company_controller.get_employee_count_by_id)
 #=================================POST=================================#

@@ -68,7 +68,6 @@ def get_industries_by_company_id(id):
         with engine.connect() as connection:
             query = text(f"""
                 SELECT ci.Company_id, ci.Industry_id, i.Industry_name
-                SELECT ci.Company_id, ci.Industry_id, i.Industry_name
                 FROM Company_Has_Industry ci
                 JOIN Company_Industry i ON ci.Industry_id = i.Industry_id
                 WHERE ci.Company_id = {id}
@@ -173,13 +172,13 @@ def create_company():
         company_id = int(data['company_id'])
         company_size = int(data['company_size'])
         description = data['description']
-        company_name = data['company_name']
-        company_url = data['company_url']
+        name = data['name']
+        url = data['url']
         
         with engine.connect() as connection:
             query = text(f'''
-                INSERT INTO Company (Company_id, Company_size, description, Company_name, Company_url) 
-                VALUES ({company_id}, {company_size}, '{description}', '{company_name}', '{company_url}')
+                INSERT INTO Company (Company_id, Company_size, description, name, url) 
+                VALUES ({company_id}, {company_size}, '{description}', '{name}', '{url}')
                 COMMIT;
             ''')
             connection.execute(query)
@@ -431,10 +430,10 @@ def update_company(id):
             set_clause.append(f"Company_size = {company_size}")
         if description is not None:
             set_clause.append(f"description = '{description}'")
-        if company_name is not None:
-            set_clause.append(f"Company_name = '{company_name}'")
-        if company_url is not None:
-            set_clause.append(f"Company_url = '{company_url}'")
+        if name is not None:
+            set_clause.append(f"name = '{name}'")
+        if url is not None:
+            set_clause.append(f"url = '{url}'")
         
         if set_clause:
             update_query = text(f'''
@@ -692,6 +691,11 @@ def update_employee_count(id):
 def delete_company(id):
     try:
         with engine.connect() as connection:
+            delete_company_query = text(f'''
+                DELETE FROM Company WHERE company_id = {id}
+                COMMIT;
+            ''')
+            connection.execute(delete_company_query, {'company_id': id})
             delete_industry_query = text(f'''
                 DELETE FROM Company_Has_Industry WHERE company_id = {id}
                 COMMIT;
