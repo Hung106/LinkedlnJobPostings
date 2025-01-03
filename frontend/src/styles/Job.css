@@ -17,8 +17,8 @@
 .job-page table {
     border-collapse: collapse;
     width: 100%; 
-    margin-top: 80px;
-    margin-left: 100px;
+    margin-top: 40px;
+    margin-left: 20px;
     margin-bottom: 10px; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
     background-color: #dadada; 
@@ -46,7 +46,7 @@
 
 
 .job-page .benefit-table {
-    width: 50%;
+    width: 80%;
     margin: 0 auto; 
     margin-top: 80px;
     border-collapse: collapse;
@@ -100,3 +100,4 @@
 .job-page th:hover {
     background-color: #d89a00; 
 }
+
